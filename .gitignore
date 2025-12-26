@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+finance_pro.db
+.streamlit/secrets.toml
+.env
+.ipynb_checkpoints/
+.DS_Store

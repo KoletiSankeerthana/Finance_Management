@@ -1,0 +1,7 @@
+streamlit
+pandas
+plotly
+bcrypt
+sqlite3
+openpyxl
+cryptography
