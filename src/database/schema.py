@@ -12,20 +12,19 @@ def init_db():
     conn = get_connection()
     cursor = conn.cursor()
     
-    # Users Table (V11: Enforced Gmail Schema)
-    # Check if migration to 'gmail' is needed
+    # Users Table (V32: Enforced Email Schema)
     try:
-        cursor.execute("SELECT gmail FROM users LIMIT 1")
+        cursor.execute("SELECT email FROM users LIMIT 1")
     except sqlite3.OperationalError:
-        # If 'gmail' column is missing, we must recreate the table
+        # Migration: If 'email' column missing, recreate table
         cursor.execute("DROP TABLE IF EXISTS users")
+        cursor.execute("DROP TABLE IF EXISTS password_resets")
     
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        gmail TEXT UNIQUE NOT NULL,
+        email TEXT UNIQUE NOT NULL,
         password_hash TEXT NOT NULL,
-        reset_token TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
     ''')

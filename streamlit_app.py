@@ -1,20 +1,22 @@
 import streamlit as st
-import os
-import re
+# V35: Force Reload - CRUD Fixed
+import sqlite3
+import hashlib
 import secrets
+import re
+from datetime import datetime, timedelta
 from src.auth.session import init_session_state, logout_user
 from src.auth.security import hash_password, verify_password
 from src.database.crud import (
-    create_user, get_user_by_gmail, 
-    set_reset_token, update_password
+    create_user, get_user_by_email, update_password_by_email
 )
 from src.database.schema import init_db
-
-# Page Config
+import random
 st.set_page_config(
-    page_title="FinancePro | Executive Insight Dashboard",
-    page_icon="💸",
+    page_title="Expense Tracker | Professional Management",
+    page_icon="💰",
     layout="wide",
+    initial_sidebar_state="expanded"
 )
 
 # Global Bottom Navigation Logic
@@ -80,16 +82,28 @@ def local_css():
     }
     
     /* V13: Force Times New Roman on smaller text per user request */
-    /* V14: Scaled down to 0.88rem for better visibility in bars */
+    /* V18: INCREASED to 1.1rem for executive clarity as requested */
     p, span, small, label, .stMarkdown p, .stMarkdown li {
         font-family: var(--font-serif) !important;
-        font-size: 0.88rem !important;
-        line-height: 1.4;
+        font-size: 1.1rem !important;
+        font-weight: 300 !important;
+        line-height: 1.5;
+        color: #f0f0f0;
     }
     
-    /* Specific override for input text content */
-    .stTextInput input, .stSelectbox [data-testid="stMarkdownContainer"] p, .stNumberInput input {
-        font-size: 0.88rem !important;
+    /* V18: Forceful override for ALL Entering Bars (Inputs/TextAreas/Selects) */
+    /* Making them "light and small" (0.8rem, weight 300) specifically for entering content */
+    input, textarea, select, 
+    div[data-baseweb="input"] input, 
+    div[data-baseweb="select"] div, 
+    div[data-baseweb="number-input"] input,
+    .stTextInput input, .stNumberInput input, .stTextArea textarea, .stDateInput input {
+        font-size: 0.8rem !important;
+        font-weight: 300 !important;
+        color: #e0e0e0 !important;
+        font-family: var(--font-body) !important;
+        padding-top: 5px !important;
+        padding-bottom: 5px !important;
     }
     
     /* Executive Card Styling */
@@ -168,13 +182,22 @@ init_db()
 init_session_state()
 
 # --- Authentication Pages ---
+
+
 def login_page():
+    # V19 Persistent Notifications
+    if st.session_state.get('auth_notification'):
+        ntype, nmsg = st.session_state.auth_notification
+        if ntype == "success": st.success(nmsg)
+        else: st.error(nmsg)
+        del st.session_state.auth_notification
+
     # Centered container for professional look
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
         st.markdown("""
         <div style='text-align: center; padding: 20px 0;'>
-            <h1 style='margin: 0; font-size: 2.5rem; background: linear-gradient(90deg, #00b4d8, #0077b6); -webkit-background-clip: text; -webkit-text-fill-color: transparent;'>FinancePro</h1>
+            <h1 style='margin: 0; font-size: 2.5rem; background: linear-gradient(90deg, #00b4d8, #0077b6); -webkit-background-clip: text; -webkit-text-fill-color: transparent;'>Expense Tracker</h1>
             <p style='color: #8b949e; font-size: 1.1rem;'>Professional Expense Management</p>
         </div>
         """, unsafe_allow_html=True)
@@ -183,82 +206,129 @@ def login_page():
         
         with tab1:
             with st.form("login_form", clear_on_submit=False):
-                gmail = st.text_input("Gmail ID", placeholder="yourname@gmail.com")
+                email = st.text_input("Email Address", placeholder="name@example.com")
                 password = st.text_input("Password", type="password", placeholder="••••••••")
                 submit = st.form_submit_button("Sign In", use_container_width=True)
                 
                 if submit:
-                    user = get_user_by_gmail(gmail)
+                    user = get_user_by_email(email)
                     if user and verify_password(password, user['password_hash']):
-                        st.session_state.authenticated = True
-                        st.session_state.user_id = user['id']
-                        st.session_state.gmail = user['gmail']
-                        st.success("Welcome back!")
-                        st.rerun()
+                        login_user(user['id'], user['email'])
                     else:
-                        st.error("Invalid Gmail or password.")
+                        st.error("Invalid Email or password.")
         
         with tab2:
             with st.form("register_form"):
-                new_gmail = st.text_input("Gmail ID", placeholder="yourname@gmail.com")
+                new_email = st.text_input("Email Address", placeholder="name@example.com")
                 new_password = st.text_input("Password", type="password", placeholder="Minimum 8 characters")
                 confirm_password = st.text_input("Confirm Password", type="password")
                 submit = st.form_submit_button("Create Account", use_container_width=True)
                 
                 if submit:
-                    if not new_gmail or not new_password:
+                    if not new_email or not new_password:
                         st.error("All fields are required")
-                    elif not re.match(r"[^@]+@gmail\.com", new_gmail):
-                        st.error("Please provide a valid @gmail.com address")
+                    # V32: Universal Email Regex
+                    elif "@" not in new_email or "." not in new_email:
+                        st.error("Please provide a valid email address")
                     elif new_password != confirm_password:
                         st.error("Passwords do not match")
-                    elif get_user_by_gmail(new_gmail):
+                    elif len(new_password) < 8:
+                        st.error("Password must be at least 8 characters.")
+                    elif get_user_by_email(new_email):
                         st.error("Account already exists. Please log in.")
                     else:
                         pwd_hash = hash_password(new_password)
-                        user_id = create_user(new_gmail, pwd_hash)
+                        user_id = create_user(new_email, pwd_hash)
                         if user_id:
                             st.success("Account created successfully! Please login.")
                         else:
                             st.error("Failed to create account")
                             
         with tab3:
-            st.markdown("### Reset Password")
-            gmail_reset = st.text_input("Enter your registered Gmail ID")
-            if st.button("Send Reset Link", use_container_width=True):
-                user = get_user_by_gmail(gmail_reset)
-                if user:
-                    token = secrets.token_urlsafe(16)
-                    set_reset_token(user['id'], token)
-                    st.info(f"SUCCESS: A reset token has been simulated for {gmail_reset}.")
-                    st.session_state.reset_email = gmail_reset
-                    st.session_state.reset_active = True
-                else:
-                    st.error("No account found with this Gmail ID.")
+            st.markdown("### 🔑 Reset Password (Demo Mode)")
             
-            if st.session_state.get('reset_active'):
-                st.markdown("---")
-                st.markdown("#### Enter New Credentials")
-                new_pwd = st.text_input("New Password", type="password")
-                confirm_new_pwd = st.text_input("Confirm New Password", type="password")
-                if st.button("Set New Password"):
-                    if new_pwd == confirm_new_pwd and len(new_pwd) >= 8:
-                        user = get_user_by_gmail(st.session_state.reset_email)
-                        if update_password(user['id'], hash_password(new_pwd)):
-                            st.success("Password updated successfully! You can now login.")
-                            st.session_state.reset_active = False
+            # Step 1: Generate OTP
+            if not st.session_state.get("reset_email"):
+                st.info("Enter your registered email to generate a demo OTP.")
+                with st.form("otp_generate_form"):
+                    email_input = st.text_input("Registered Email Address", placeholder="name@example.com")
+                    generate_btn = st.form_submit_button("Generate OTP", use_container_width=True)
+                    
+                    if generate_btn:
+                        user = get_user_by_email(email_input)
+                        if user:
+                            # Generate 6-digit OTP
+                            otp = str(random.randint(100000, 999999))
+                            st.session_state.reset_otp = otp
+                            st.session_state.reset_email = email_input
+                            st.session_state.otp_expiry = datetime.now() + timedelta(minutes=5)
+                            st.session_state.otp_verified = False
+                            st.rerun()
                         else:
-                            st.error("Failed to update password.")
-                    else:
-                        st.error("Passwords must match and be at least 8 characters.")
+                            st.error("No account found with this email.")
+            
+            # Step 2: Verify OTP
+            elif st.session_state.get("reset_email") and not st.session_state.get("otp_verified"):
+                # Display OTP on screen for Demo
+                st.warning(f"🔧 **DEV MODE OTP: {st.session_state.reset_otp}**")
+                st.caption("⚠️ This OTP is visible only for demo purposes.")
+                
+                with st.form("otp_verify_form"):
+                    input_otp = st.text_input("Enter 6-digit OTP", placeholder="123456")
+                    verify_btn = st.form_submit_button("Verify OTP", use_container_width=True)
+                    
+                    if verify_btn:
+                        if datetime.now() > st.session_state.otp_expiry:
+                            st.error("OTP expired. Please try again.")
+                            st.session_state.reset_email = None # Reset flow
+                        elif input_otp == st.session_state.reset_otp:
+                            st.session_state.otp_verified = True
+                            st.success("OTP Verified!")
+                            st.rerun()
+                        else:
+                            st.error("Invalid OTP.")
+                
+                if st.button("Cancel & Restart"):
+                    st.session_state.reset_email = None
+                    st.rerun()
+
+            # Step 3: New Password
+            elif st.session_state.get("otp_verified"):
+                st.success(f"Verified for: {st.session_state.reset_email}")
+                with st.form("new_password_form_otp"):
+                    new_pass = st.text_input("New Password", type="password", placeholder="Minimum 8 characters")
+                    conf_pass = st.text_input("Confirm Password", type="password")
+                    reset_btn = st.form_submit_button("Reset Password", use_container_width=True)
+                    
+                    if reset_btn:
+                        if new_pass != conf_pass:
+                            st.error("Passwords do not match.")
+                        elif len(new_pass) < 8:
+                            st.error("Password must be at least 8 characters.")
+                        else:
+                            if update_password_by_email(st.session_state.reset_email, hash_password(new_pass)):
+                                st.success("✅ Password reset successful!")
+                                # Cleanup
+                                st.session_state.reset_email = None
+                                st.session_state.reset_otp = None
+                                st.session_state.otp_verified = False
+                                st.info("Please go to the Login tab to sign in.")
+                            else:
+                                st.error("Failed to update password.")
+                
+                if st.button("Cancel"):
+                    st.session_state.reset_email = None
+                    st.rerun()
+
+
 
 # --- Main App Logic ---
 if not st.session_state.authenticated:
     login_page()
 else:
     # Authenticated Menu
-    st.sidebar.markdown(f"<p class='sidebar-title'>FinancePro</p>", unsafe_allow_html=True)
-    st.sidebar.markdown(f"**Welcome, {st.session_state.gmail}**")
+    st.sidebar.markdown(f"<p class='sidebar-title'>Expense Tracker</p>", unsafe_allow_html=True)
+    st.sidebar.markdown(f"**Welcome, {st.session_state.email}**")
     
     pages = {
         "📊 Dashboard": "dashboard",

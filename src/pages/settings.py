@@ -1,5 +1,5 @@
 import streamlit as st
-from src.database.crud import reset_user_data, delete_user_account, get_user_by_gmail
+from src.database.crud import reset_user_data, delete_user_account, get_user_by_email
 from src.auth.security import verify_password
 from src.auth.session import logout_user
 
@@ -13,8 +13,8 @@ def render_settings():
         return
 
     # Ensure session state keys exist
-    if 'gmail' not in st.session_state:
-        st.session_state.gmail = "User"
+    if 'email' not in st.session_state:
+        st.session_state.email = "User"
     if 'user_id' not in st.session_state:
         st.error("Session error: User ID missing. Please re-login.")
         return
@@ -27,7 +27,7 @@ def render_settings():
     """, unsafe_allow_html=True)
     
     user_id = st.session_state.user_id
-    gmail = st.session_state.gmail
+    email = st.session_state.email
     
     # 1. Profile & Region Row
     col_profile, col_region = st.columns(2)

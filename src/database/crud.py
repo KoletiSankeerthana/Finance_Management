@@ -2,14 +2,14 @@ from .schema import get_connection
 import pandas as pd
 import streamlit as st
 
-# --- User Management (V11: Gmail Enforced) ---
-def create_user(gmail, password_hash):
+# --- User Management (V32: Email Enforced) ---
+def create_user(email, password_hash):
     conn = get_connection()
     cursor = conn.cursor()
     try:
         cursor.execute(
-            "INSERT INTO users (gmail, password_hash) VALUES (?, ?)",
-            (gmail, password_hash)
+            "INSERT INTO users (email, password_hash) VALUES (?, ?)",
+            (email, password_hash)
         )
         user_id = cursor.lastrowid
         init_user_defaults(user_id, cursor)
@@ -22,29 +22,20 @@ def create_user(gmail, password_hash):
     finally:
         conn.close()
 
-def get_user_by_gmail(gmail):
+def get_user_by_email(email):
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM users WHERE gmail = ?", (gmail,))
+    cursor.execute("SELECT * FROM users WHERE email = ?", (email,))
     user = cursor.fetchone()
     conn.close()
     return user
 
-def set_reset_token(user_id, token):
-    conn = get_connection()
-    cursor = conn.cursor()
-    try:
-        cursor.execute("UPDATE users SET reset_token = ? WHERE id = ?", (token, user_id))
-        conn.commit()
-        return True
-    except: return False
-    finally: conn.close()
 
 def update_password(user_id, new_password_hash):
     conn = get_connection()
     cursor = conn.cursor()
     try:
-        cursor.execute("UPDATE users SET password_hash = ?, reset_token = NULL WHERE id = ?", 
+        cursor.execute("UPDATE users SET password_hash = ? WHERE id = ?", 
                        (new_password_hash, user_id))
         conn.commit()
         return True
@@ -117,76 +108,41 @@ def get_category_map(user_id):
     cats = get_categories(user_id)
     return {c['name']: c['emoji'] for c in cats}
 
-# --- Caching & Validation (V6 Architecture) ---
-@st.cache_data(ttl=60, show_spinner=False)
-def load_transactions_df(user_id, filters=None):
-    """
-    V6 Architecture: Single Source of Truth with Caching
-    - Caches DB reads for performance
-    - Enforces strict schema validation
-    - Handles empty states gracefully
-    """
+def get_transactions(user_id):
+    # V6: Caching
+    cache_key = f"tx_{user_id}"
+    if cache_key in st.session_state:
+        return st.session_state[cache_key]
+
     conn = get_connection()
-    query = "SELECT * FROM transactions WHERE user_id = ?"
-    params = [user_id]
+    # Return as DataFrame for easy analysis
+    df = pd.read_sql("SELECT * FROM transactions WHERE user_id = ? ORDER BY date DESC", conn, params=(user_id,))
+    conn.close()
     
-    if filters:
-        if 'start_date' in filters and filters['start_date']:
-            query += " AND date >= ?"
-            params.append(filters['start_date'])
-        if 'end_date' in filters and filters['end_date']:
-            query += " AND date <= ?"
-            params.append(filters['end_date'])
-        if 'search' in filters and filters['search']:
-            # Multidimensional search logic
-            s = f"%{filters['search']}%"
-            query += " AND (category LIKE ? OR notes LIKE ? OR date LIKE ?)"
-            params.extend([s, s, s])
-            
-    try:
-        df = pd.read_sql_query(query, conn, params=params)
-    except Exception as e:
-        print(f"DB Read Error: {e}")
-        df = pd.DataFrame()
-    finally:
-        conn.close()
-    
-    # Global Schema Validation
-    required_columns = ['id', 'user_id', 'amount', 'category', 'payment_method', 'date', 'notes', 'created_at']
-    if df.empty:
-        return pd.DataFrame(columns=required_columns)
-    
-    # Defensive Date Parsing
-    df['date'] = pd.to_datetime(df['date'], errors='coerce')
-    df = df.dropna(subset=['date']) # Drop corrupted rows
-    
-    # Ensure all columns exist (defensive schema)
-    for col in required_columns:
-        if col not in df.columns:
-            df[col] = None
-            
+    # Store in session state cache
+    st.session_state[cache_key] = df
     return df
 
 def _clear_cache():
-    load_transactions_df.clear()
+    # Helper to clear transaction cache
+    keys = [k for k in st.session_state.keys() if k.startswith("tx_")]
+    for k in keys:
+        del st.session_state[k]
 
 # --- Transaction Management ---
-def add_transaction(user_id, amount, category, payment_method, date, notes):
+def add_transaction(user_id, amount, category, payment, date, notes):
     conn = get_connection()
     cursor = conn.cursor()
     try:
-        # V3 Ensure amount is stored as positive
-        abs_amount = abs(float(amount))
         cursor.execute(
-            """INSERT INTO transactions (user_id, amount, category, payment_method, date, notes) 
-               VALUES (?, ?, ?, ?, ?, ?)""",
-            (user_id, abs_amount, category, payment_method, date, notes)
+            "INSERT INTO transactions (user_id, amount, category, payment_method, date, notes) VALUES (?, ?, ?, ?, ?, ?)",
+            (user_id, amount, category, payment, date, notes)
         )
         conn.commit()
-        _clear_cache() # V6: Invalidate cache on write
+        _clear_cache() # V6: Invalidate cache
         return True
     except Exception as e:
-        print(f"Error: {e}")
+        print(e)
         return False
     finally:
         conn.close()
@@ -256,4 +212,17 @@ def delete_user_account(user_id):
         conn.commit()
         return True
     except: return False
+    finally: conn.close()
+
+# --- Password Reset Flow (V32) ---
+
+
+def update_password_by_email(email, hashed_password):
+    """Updates the user's password using email identifier."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute('UPDATE users SET password_hash = ? WHERE email = ?', (hashed_password, email))
+        conn.commit()
+        return cursor.rowcount > 0
     finally: conn.close()

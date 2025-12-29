@@ -21,7 +21,7 @@ def render_dashboard():
         st.markdown(f"""
         <div style="margin-bottom: 20px;">
             <h1 style="margin: 0; font-size: 2.2rem; background: linear-gradient(90deg, #00b4d8, #0077b6); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Executive Dashboard</h1>
-            <p style="color: #a4b0be; font-size: 1.05rem; margin-top: 5px;">Financial Overview for <strong>{st.session_state.gmail}</strong></p>
+            <p style="color: #a4b0be; font-size: 1.05rem; margin-top: 5px;">Financial Overview for <strong>{st.session_state.email}</strong></p>
         </div>
         """, unsafe_allow_html=True)
         

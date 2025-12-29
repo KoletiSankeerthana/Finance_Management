@@ -7,6 +7,8 @@ env/
 venv/
 .venv/
 finance_pro.db
+expense_tracker.db
+*.db
 .streamlit/secrets.toml
 .env
 .ipynb_checkpoints/
