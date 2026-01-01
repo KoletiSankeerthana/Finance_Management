@@ -109,46 +109,40 @@ def get_category_map(user_id):
     return {c['name']: c['emoji'] for c in cats}
 
 def load_transactions_df(user_id, filters=None):
-    # V6: Caching (Simplified for this version - only cache unfiltered full view)
-    cache_key = f"tx_{user_id}_full"
-    
-    # If filters are provided, we skip the simple session state cache for now
-    # to ensure real-time accuracy, or we filter the cached DF.
-    
+    """
+    Loads transactions from SQL. 
+    Strictly reads fresh data to ensure deployment sync.
+    """
     conn = get_connection()
-    query = "SELECT * FROM transactions WHERE user_id = ?"
-    params = [user_id]
-    
-    if filters:
-        if 'start_date' in filters and filters['start_date']:
-            query += " AND date >= ?"
-            params.append(filters['start_date'])
-        if 'end_date' in filters and filters['end_date']:
-            query += " AND date <= ?"
-            params.append(filters['end_date'])
-        if 'category' in filters and filters['category'] and filters['category'] != "All":
-            query += " AND category = ?"
-            params.append(filters['category'])
-        if 'payment_mode' in filters and filters['payment_mode'] and filters['payment_mode'] != "All":
-            query += " AND payment_method = ?"
-            params.append(filters['payment_mode'])
-    
-    query += " ORDER BY date DESC"
-    
-    df = pd.read_sql(query, conn, params=params)
-    conn.close()
-    
-    # Convert 'date' column to datetime objects
-    if not df.empty:
-        df['date'] = pd.to_datetime(df['date'])
+    try:
+        query = "SELECT * FROM transactions WHERE user_id = ?"
+        params = [user_id]
         
-    return df
+        if filters:
+            if 'start_date' in filters and filters['start_date']:
+                query += " AND date >= ?"
+                params.append(filters['start_date'])
+            if 'end_date' in filters and filters['end_date']:
+                query += " AND date <= ?"
+                params.append(filters['end_date'])
+            if 'category' in filters and filters['category'] and filters['category'] != "All":
+                query += " AND category = ?"
+                params.append(filters['category'])
+            if 'payment_mode' in filters and filters['payment_mode'] and filters['payment_mode'] != "All":
+                query += " AND payment_method = ?"
+                params.append(filters['payment_mode'])
+        
+        query += " ORDER BY date DESC"
+        df = pd.read_sql(query, conn, params=params)
+        
+        if not df.empty:
+            df['date'] = pd.to_datetime(df['date'])
+            
+        return df
+    finally:
+        conn.close()
 
-def _clear_cache():
-    # Helper to clear transaction cache
-    keys = [k for k in st.session_state.keys() if k.startswith("tx_")]
-    for k in keys:
-        del st.session_state[k]
+    return df
 
 # --- Transaction Management ---
 def add_transaction(user_id, amount, category, payment, date, notes):
@@ -160,10 +154,9 @@ def add_transaction(user_id, amount, category, payment, date, notes):
             (user_id, amount, category, payment, date, notes)
         )
         conn.commit()
-        _clear_cache() # V6: Invalidate cache
         return True
     except Exception as e:
-        print(e)
+        print(f"Error adding transaction: {e}")
         return False
     finally:
         conn.close()

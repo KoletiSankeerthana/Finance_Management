@@ -6,6 +6,8 @@ DB_PATH = "finance_pro.db"
 def get_connection():
     conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     conn.row_factory = sqlite3.Row
+    # Enable WAL mode for better concurrency and sync on cloud servers
+    conn.execute("PRAGMA journal_mode=WAL;")
     return conn
 
 def init_db():
