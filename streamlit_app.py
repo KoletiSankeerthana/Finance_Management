@@ -274,17 +274,8 @@ else:
         }}
         [data-testid="stSidebarNav"] {{ display: none; }} /* Hide default nav */
         
-        .nav-btn {{
-            display: flex;
-            align-items: center;
-            padding: 10px;
-            border-radius: 8px;
-            cursor: pointer;
-            margin-bottom: 5px;
-            transition: background 0.2s;
-        }}
-        .nav-btn:hover {{ background: rgba(255,255,255,0.05); }}
-        .nav-active {{ background: rgba(0, 128, 128, 0.2) !important; border-left: 3px solid #008080; }}
+        /* Prevent vertical wrapping on small sidebars */
+        .stButton button {{ white-space: nowrap !important; overflow: hidden !important; }}
         </style>
     """, unsafe_allow_html=True)
 
@@ -311,8 +302,12 @@ else:
         for label, config in NAV_CONFIG.items():
             is_active = st.session_state.current_page == label
             
-            # Use buttons for navigation to ensure persistence and instant updates
-            btn_label = f"{config['icon']} {label}" if expanded else config['icon']
+            # Robust icon handling (in case user removed some)
+            icon = config.get('icon', '')
+            if expanded:
+                btn_label = f"{icon} {label}" if icon else label
+            else:
+                btn_label = icon if icon else label[:1] # Show first letter if icon missing
             
             if st.button(
                 btn_label, 
@@ -324,7 +319,9 @@ else:
                 st.rerun()
 
         st.markdown("---")
-        if st.button("🔓 Logout", use_container_width=True, key="sidebar_logout"):
+        # Fix logout button wrapping: only show icon when collapsed
+        logout_btn_label = "🔓 Logout" if expanded else "🔓"
+        if st.button(logout_btn_label, use_container_width=True, key="sidebar_logout"):
             logout_user()
 
     # Route Rendering

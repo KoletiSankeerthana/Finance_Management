@@ -76,7 +76,7 @@ def render_categories():
                     st.info("Cannot delete – expenses exist")
                 else:
                     # Allow delete checkbox if count == 0
-                    confirm = st.checkbox("Delete?", key=f"conf_{cat['id']}")
+                    confirm = st.checkbox("Delete", key=f"conf_{cat['id']}")
                     if confirm:
                         if st.button(f"Confirm 🗑️", key=f"del_{cat['id']}", type="primary"):
                             success, msg = delete_category(user_id, category_name)
