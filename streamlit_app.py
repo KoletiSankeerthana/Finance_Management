@@ -55,8 +55,8 @@ def local_css():
     
     .app-header-title {
         font-weight: 700 !important;
-        font-size: clamp(2rem, 10vw, 3.5rem) !important; /* Responsive scaling */
-        white-space: nowrap !important; /* Force one line */
+        font-size: clamp(1.8rem, 8vw, 3rem) !important; /* Optimized scaling */
+        white-space: nowrap !important;
         text-transform: uppercase !important;
         text-align: center !important;
         background: linear-gradient(180deg, #ffffff 0%, #a4b0be 100%);
@@ -64,6 +64,7 @@ def local_css():
         -webkit-text-fill-color: transparent;
         display: block;
         width: 100%;
+        margin: 0 auto !important;
         overflow: hidden;
         text-overflow: ellipsis;
     }
@@ -110,33 +111,32 @@ def local_css():
         transform: scale(1.02) !important;
     }
 
-    /* Floating Toggle for Mobile/Collapsed Sidebar */
-    .stButton > div > button[key^="mobile_toggle"] {
-        position: fixed !important;
-        top: 15px !important;
-        left: 15px !important;
-        z-index: 999999 !important;
-        background: var(--bg-card) !important;
-        border: 1px solid var(--border) !important;
-        border-radius: 50% !important;
-        width: 50px !important;
-        height: 50px !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        transition: all 0.3s ease !important;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.6) !important;
-        padding: 0 !important;
+    /* Floating Toggle Styling */
+    .custom-hamburger {
+        position: fixed;
+        top: 15px;
+        left: 15px;
+        z-index: 999999;
+        background: var(--bg-card);
+        color: white;
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.6);
+        border: 1px solid var(--border);
+        transition: all 0.2s ease;
     }
-    .stButton > div > button[key^="mobile_toggle"]:hover {
-        background: var(--primary) !important;
-        transform: scale(1.1) !important;
-        border-color: var(--primary) !important;
+    .custom-hamburger:hover {
+        background: var(--primary);
+        transform: scale(1.1);
     }
-    .stButton > div > button[key^="mobile_toggle"] div p {
-        font-size: 1.5rem !important;
-        margin: 0 !important;
-        line-height: 1 !important;
+    /* Hide the trigger button itself */
+    div.stButton > button[key^="mobile_toggle"] {
+        display: none !important;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -318,18 +318,28 @@ else:
 
     # Floating Toggle for accessibility when sidebar is collapsed
     if not expanded:
-        # Use a real Streamlit button but style it as a floating circle
-        if st.button("☰", key="mobile_toggle_main", help="Expand Sidebar"):
+        st.markdown("""
+            <div class="custom-hamburger" onclick="window.parent.document.querySelectorAll('button').forEach(btn => { if(btn.innerText.includes('☰')) btn.click(); })">
+                <span style="font-size: 1.2rem;">☰</span>
+            </div>
+        """, unsafe_allow_html=True)
+        # Hidden trigger button
+        if st.button("☰", key="mobile_toggle_trigger"):
             st.session_state.sidebar_expanded = True
             st.rerun()
 
     with st.sidebar:
-        # Centered Toggle Button (<< >>)
-        toggle_cols = st.columns([1, 2, 1])
-        with toggle_cols[1]:
-            toggle_label = "«" if expanded else "»" # Cleaner arrow icons
-            if st.button(toggle_label, key="sidebar_toggle", help="Expand/Collapse Sidebar", use_container_width=True):
-                st.session_state.sidebar_expanded = not st.session_state.sidebar_expanded
+        # Sidebar Toggle Optimization
+        if expanded:
+            toggle_cols = st.columns([1, 2, 1])
+            with toggle_cols[1]:
+                if st.button("«", key="sidebar_toggle_collapse", help="Collapse Sidebar", use_container_width=True):
+                    st.session_state.sidebar_expanded = False
+                    st.rerun()
+        else:
+            # Full width button for narrow sidebar
+            if st.button("»", key="sidebar_toggle_expand", help="Expand Sidebar", use_container_width=True):
+                st.session_state.sidebar_expanded = True
                 st.rerun()
 
         st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
