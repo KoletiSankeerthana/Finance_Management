@@ -309,10 +309,10 @@ else:
         [data-testid="stSidebarNav"] {{ display: none; }} /* Hide default nav */
         
         /* Prevent vertical wrapping on small sidebars */
-        .stButton button { white-space: nowrap !important; overflow: hidden !important; }
+        .stButton button {{ white-space: nowrap !important; overflow: hidden !important; }}
         
         /* Hide default Streamlit sidebar toggle to use our own floating one */
-        button[kind="header"] { display: none !important; }
+        button[kind="header"] {{ display: none !important; }}
         </style>
     """, unsafe_allow_html=True)
 
