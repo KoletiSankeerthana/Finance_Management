@@ -34,7 +34,7 @@ def render_categories():
                     else:
                         st.error("Error adding category.")
 
-    st.markdown("### 📋 Your Categories")
+    st.markdown("### Your Categories")
     
     cats = get_categories(user_id)
     # Load transactions strictly for real-time counting

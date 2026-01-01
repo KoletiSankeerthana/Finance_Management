@@ -280,23 +280,27 @@ else:
     """, unsafe_allow_html=True)
 
     with st.sidebar:
-        # Toggle Button (<< >>)
-        toggle_label = "<<" if expanded else ">>"
-        if st.button(toggle_label, key="sidebar_toggle", help="Expand/Collapse Sidebar"):
-            st.session_state.sidebar_expanded = not st.session_state.sidebar_expanded
-            st.rerun()
+        # Centered Toggle Button (<< >>)
+        toggle_cols = st.columns([1, 2, 1])
+        with toggle_cols[1]:
+            toggle_label = "«" if expanded else "»" # Cleaner arrow icons
+            if st.button(toggle_label, key="sidebar_toggle", help="Expand/Collapse Sidebar", use_container_width=True):
+                st.session_state.sidebar_expanded = not st.session_state.sidebar_expanded
+                st.rerun()
+
+        st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
 
         if expanded:
             st.markdown(f"""
-            <div style='padding: 0 0 20px 0;'>
-                <p style='font-size:1.5rem; font-weight:bold; color:var(--primary); margin:0;'>{APP_TITLE}</p>
-                <p style='font-size: 0.75rem; color:var(--text-muted);'>{APP_SUBTITLE}</p>
+            <div style='padding: 0 0 15px 0; text-align: center;'>
+                <p style='font-size:1.4rem; font-weight:bold; color:var(--primary); margin:0;'>{APP_TITLE}</p>
+                <p style='font-size: 0.7rem; color:var(--text-muted);'>{APP_SUBTITLE}</p>
             </div>
             """, unsafe_allow_html=True)
             st.markdown(f"👤 **{st.session_state.email}**")
             st.markdown("---")
         else:
-            st.markdown("<div style='height: 40px;'></div>", unsafe_allow_html=True)
+            st.markdown("<div style='height: 20px;'></div>", unsafe_allow_html=True)
 
         # Navigation Menu
         for label, config in NAV_CONFIG.items():

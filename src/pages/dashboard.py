@@ -14,17 +14,12 @@ def render_dashboard():
     user_id = st.session_state.user_id
     today = date.today()
 
-    cols = st.columns([4, 1])
-    with cols[0]:
-        st.markdown(f"""
-        <div style="margin-bottom: 20px; text-align: center;">
-            <h1 class='app-header-title'>DASHBOARD</h1>
-            <p class='app-header-subtitle'>Financial Overview</p>
-        </div>
-        """, unsafe_allow_html=True)
-    with cols[1]:
-        if st.button("🔄 Sync", help="Force reload data from server"):
-            st.rerun()
+    st.markdown(f"""
+    <div style="margin-bottom: 20px; text-align: center;">
+        <h1 class='app-header-title'>DASHBOARD</h1>
+        <p class='app-header-subtitle'>Financial Overview</p>
+    </div>
+    """, unsafe_allow_html=True)
 
     # --- Load Data ---
     df = load_transactions_df(user_id)
@@ -119,7 +114,7 @@ def render_dashboard():
     st.markdown("---")
 
     # --- Charts ---
-    st.markdown("### 📊 Daily Spending Trend")
+    st.markdown("### Daily Spending Trend")
     
     if not df.empty:
         # Filter for this month
