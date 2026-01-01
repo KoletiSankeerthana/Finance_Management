@@ -1,4 +1,4 @@
-# Force reload
+# V36: Mobile UI Fix - Force Deployment Trigger
 import streamlit as st
 # V35: Force Reload - CRUD Fixed
 import sqlite3
