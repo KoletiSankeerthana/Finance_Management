@@ -1,78 +1,95 @@
 import streamlit as st
-from src.database.crud import get_categories, add_category, delete_category
+import time
+from src.database.crud import add_category, get_categories, delete_category, load_transactions_df
 
 def render_categories():
-    # --- Defensive Hardening (V12) ---
     if not st.session_state.get('authenticated'):
-        st.warning("Please log in to access Category Management.")
-        return
-    if 'user_id' not in st.session_state:
-        st.error("Session error: User ID missing. Please re-login.")
+        st.warning("Please log in.")
         return
 
-    # V13 Hero Section
+    user_id = st.session_state.user_id
+
     st.markdown(f"""
-    <div style="margin-bottom: 25px;">
-        <h1 style="margin: 0; font-size: 2.5rem; background: linear-gradient(90deg, #00b4d8, #0077b6); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Category Mastery</h1>
-        <p style="color: #a4b0be; font-size: 1.1rem; margin-top: 8px;">Organize your financial life with custom segments and visual markers.</p>
+    <div style="margin-bottom: 20px; text-align: center;">
+        <h1 class='app-header-title'>CATEGORIES</h1>
+        <p class='app-header-subtitle'>Custom Categories</p>
     </div>
     """, unsafe_allow_html=True)
-    
-    user_id = st.session_state.user_id
-    
-    # --- Form Auto-Reset Logic ---
-    if 'cat_name' not in st.session_state: st.session_state.cat_name = ""
-    if 'cat_emoji' not in st.session_state: st.session_state.cat_emoji = "🏷️"
-    
-    with st.expander("➕ Define New Segment", expanded=False):
-        with st.form("add_cat_form_v13", clear_on_submit=False):
-            col1, col2 = st.columns([2, 1])
-            with col1:
-                name = st.text_input("Segment Name", value=st.session_state.cat_name, key="v13_cat_name", placeholder="e.g., Luxury, Utilities...")
-            with col2:
-                emoji = st.text_input("Visual Marker (Icon/Emoji)", value=st.session_state.cat_emoji, key="v13_cat_icon")
-                
-            if st.form_submit_button("Create Category", use_container_width=True):
-                if not name.strip():
+
+    # --- Add Category ---
+    with st.expander("➕ Add New Category", expanded=True):
+        with st.form("add_cat_form", clear_on_submit=True):
+            c1, c2 = st.columns([3, 1])
+            name = c1.text_input("Category Name")
+            emoji = c2.text_input("Icon (e.g. 🍔)", value="🏷️")
+            
+            if st.form_submit_button("Add Category", type="primary"):
+                if not name:
                     st.error("Name is required.")
                 else:
-                    existing = [c['name'].lower() for c in get_categories(user_id)]
-                    if name.lower().strip() in existing:
-                        st.error(f"Category '{name}' already exists.")
-                    elif add_category(user_id, name.strip(), emoji):
-                        st.success(f"Category '{name}' created!")
-                        st.session_state.cat_name = ""
-                        st.session_state.cat_emoji = "🏷️"
+                    if add_category(user_id, name, emoji):
+                        st.success(f"Category '{name}' added!")
+                        time.sleep(1)
                         st.rerun()
                     else:
-                        st.error("Failed to create category.")
+                        st.error("Error adding category.")
 
-    st.markdown("---")
+    st.markdown("### 📋 Your Categories")
     
-    # V14: Professional List Layout (Reverted from Grid)
     cats = get_categories(user_id)
+    # Load transactions strictly for real-time counting
+    from src.database.crud import load_transactions_df
+    expenses_df = load_transactions_df(user_id)
+    
+    # REQUIRED DATA LOGIC: Calculate strictly from expenses
+    if not expenses_df.empty:
+        from src.utils.navigation import clean_category_icons
+        expenses_df = clean_category_icons(expenses_df.copy(), user_id=user_id)
+        # Pandas-style logic as requested:
+        txn_counts = (
+            expenses_df
+            .groupby("category")
+            .size()
+            .to_dict()
+        )
+    else:
+        txn_counts = {}
+    
     if cats:
         for cat in cats:
-            with st.container():
-                c1, c2 = st.columns([5, 1])
-                c1.markdown(f"""
-                <div style='display: flex; align-items: center; padding: 15px; background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border); margin-bottom: 0px;'>
-                    <div style='font-size: 1.5rem; margin-right: 20px;'>{cat['emoji']}</div>
-                    <div style='font-weight: 600; font-size: 1.1rem; color: #fafafa;'>{cat['name']}</div>
-                </div>
-                """, unsafe_allow_html=True)
-                
-                if c2.button("Delete", key=f"del_cat_v14_{cat['id']}", use_container_width=True):
-                    success, message = delete_category(user_id, cat['name'])
-                    if success:
-                        st.success(message)
-                        st.rerun()
-                    else:
-                        st.error(message)
-            st.markdown("<div style='margin-bottom: 12px;'></div>", unsafe_allow_html=True)
+            # Transaction count must be calculated ONLY from expenses
+            category_name = cat['name']
+            count = txn_counts.get(category_name, 0)
+            
+            # UI Layout (Keep Same)
+            c1, c2, c3 = st.columns([0.4, 3.6, 1.2]) 
+            with c1:
+                st.markdown(f"<h4 style='margin:0; font-size:1.4rem;'>{cat['emoji']}</h4>", unsafe_allow_html=True)
+            with c2:
+                st.markdown(f"<p style='margin:0; font-size:0.95rem; font-weight:600;'>{category_name}</p>", unsafe_allow_html=True)
+                st.caption(f"{count} transactions linked")
+            
+            with c3:
+                # DELETE OPTION RULE
+                if count > 0:
+                    # Disable delete checkbox and show info text (Mandatory)
+                    st.info("Cannot delete – expenses exist")
+                else:
+                    # Allow delete checkbox if count == 0
+                    confirm = st.checkbox("Delete?", key=f"conf_{cat['id']}")
+                    if confirm:
+                        if st.button(f"Confirm 🗑️", key=f"del_{cat['id']}", type="primary"):
+                            success, msg = delete_category(user_id, category_name)
+                            if success:
+                                st.success(msg)
+                                time.sleep(1)
+                                st.rerun()
+                            else:
+                                st.error(msg)
+            
+            st.markdown("<div style='margin: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.1);'></div>", unsafe_allow_html=True)
     else:
-        st.markdown("""
-        <div style="text-align: center; padding: 40px; color: #a4b0be; border: 1px dashed var(--border); border-radius: 12px;">
-            <p>Your workspace is empty. Create your first category above to begin tracking.</p>
-        </div>
-        """, unsafe_allow_html=True)
+        st.info("No categories found.")
+
+    from src.utils.navigation import render_bottom_nav
+    render_bottom_nav("categories")

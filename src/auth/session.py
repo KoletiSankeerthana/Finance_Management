@@ -7,8 +7,8 @@ def init_session_state():
         st.session_state.user_id = None
     if "email" not in st.session_state:
         st.session_state.email = None
-    if "current_page" not in st.session_state:
-        st.session_state.current_page = "Dashboard"
+    if "page" not in st.session_state:
+        st.session_state.page = "welcome"
     
     # OTP States (Demo Only)
     if "reset_otp" not in st.session_state:

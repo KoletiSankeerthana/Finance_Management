@@ -1,119 +1,200 @@
 import streamlit as st
 import pandas as pd
-from datetime import datetime, timedelta
-from src.database.crud import add_transaction, load_transactions_df, get_categories, delete_transaction, get_category_map
-from src.utils.formatting import format_currency
+import time
+from datetime import date, datetime, timedelta
+from src.database.crud import add_transaction, load_transactions_df, delete_transaction, update_transaction
+from src.utils.constants import CATEGORIES, PAYMENT_MODES
+from src.utils.navigation import clean_category_icons, render_bottom_nav
 
 def render_transactions():
-    # --- Defensive Hardening (V12) ---
     if not st.session_state.get('authenticated'):
-        st.warning("Please log in to access Transactions.")
+        st.warning("Please log in.")
         return
-    if 'user_id' not in st.session_state:
-        st.error("Session error: User ID missing. Please re-login.")
-        return
-
-    # V13 Hero Section
-    st.markdown(f"""
-    <div style="margin-bottom: 25px;">
-        <h1 style="margin: 0; font-size: 2.5rem; background: linear-gradient(90deg, #00b4d8, #0077b6); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Expense Ledger</h1>
-        <p style="color: #a4b0be; font-size: 1.1rem; margin-top: 8px;">Detailed record of every financial movement across your accounts.</p>
-    </div>
-    """, unsafe_allow_html=True)
     
     user_id = st.session_state.user_id
-    cat_emoji_map = get_category_map(user_id)
-    
-    # --- Form State Management ---
-    if 'tx_amount' not in st.session_state: st.session_state.tx_amount = 0.0
-    if 'tx_notes' not in st.session_state: st.session_state.tx_notes = ""
-    
-    with st.expander("➕ Log New Transaction", expanded=True):
-        with st.form("add_tx_form_v13", clear_on_submit=False):
-            # V13: Professional 3-column Form
-            c1, c2, c3 = st.columns(3)
-            with c1:
-                amount = st.number_input("Amount", min_value=0.0, step=100.0, value=st.session_state.tx_amount, key="v13_amount")
-                date = st.date_input("Date", value=datetime.now().date(), key="v13_date")
-            with c2:
-                categories = ["Select Category"] + list(cat_emoji_map.keys())
-                category = st.selectbox("Category", categories, key="v13_category")
-                payment_method = st.selectbox("Payment Method", ["Select Payment Method", "Cash", "Debit Card", "Credit Card", "UPI", "Net Banking", "Other"], key="v13_pay")
-            with c3:
-                notes = st.text_area("Observations / Notes", value=st.session_state.tx_notes, key="v13_notes", height=101)
-            
-            if st.form_submit_button("Authorize Expense", use_container_width=True):
-                if amount <= 0:
-                    st.error("Amount must be positive.")
-                elif category == "Select Category":
-                    st.error("Please assign a category.")
-                elif payment_method == "Select Payment Method":
-                    st.error("Please specify payment method.")
-                else:
-                    if add_transaction(user_id, amount, category, payment_method, date, notes):
-                        st.success("Transaction recorded successfully.")
-                        st.session_state.tx_amount = 0.0
-                        st.session_state.tx_notes = ""
-                        st.rerun()
-                    else:
-                        st.error("Database error occurred.")
+    today = date.today()
 
-    st.markdown("---")
-    
-    # --- Professional Filter Panel ---
-    st.subheader("Advanced Filtering")
-    
-    if 'filter_cat' not in st.session_state: st.session_state.filter_cat = "Select Category"
-    if 'filter_search' not in st.session_state: st.session_state.filter_search = ""
-    
-    fcol1, fcol2, fcol3 = st.columns([1, 1, 2])
-    with fcol1:
-        period_opt = st.selectbox("Timeframe", ["All Time", "Today", "This Month", "Last 3 Months", "Custom"])
-    with fcol2:
-        cat_filter = st.selectbox("Segment Filter", ["Select Category"] + list(cat_emoji_map.keys()), key="tx_filter_cat")
-    with fcol3:
-        search_input = st.text_input("🔍 Semantic Search", value=st.session_state.filter_search, placeholder="Search in notes...", key="tx_filter_search")
-        st.session_state.filter_search = search_input
-
-    # Date Logic
-    start_date, end_date = None, datetime.now().date()
-    if period_opt == "Today": start_date = end_date
-    elif period_opt == "This Month": start_date = end_date.replace(day=1)
-    elif period_opt == "Last 3 Months": start_date = end_date - timedelta(days=90)
-    elif period_opt == "Custom":
-        c_col1, c_col2 = st.columns(2)
-        start_date = c_col1.date_input("Start", end_date - timedelta(days=30))
-        end_date = c_col2.date_input("End", end_date)
-
-    filters = {'start_date': start_date, 'end_date': end_date, 'search': search_input}
-    df = load_transactions_df(user_id, filters=filters)
-    if cat_filter != "Select Category":
-        df = df[df['category'] == cat_filter]
-
-    if df.empty:
-        st.info("No ledger entries found for the selected criteria.")
-        return
-    
-    # --- V13: Executive Table Structure ---
-    st.markdown("""
-    <div style="display: flex; font-weight: 700; font-size: 0.9rem; color: #00b4d8; padding: 15px; border-bottom: 2px solid var(--border); margin-bottom: 10px;">
-        <div style="flex: 1;">Date</div>
-        <div style="flex: 1.5;">Category</div>
-        <div style="flex: 3;">Notes</div>
-        <div style="flex: 1.2; text-align: right;">Amount</div>
-        <div style="flex: 0.8; text-align: center;">Control</div>
+    st.markdown(f"""
+    <div style="margin-bottom: 20px; text-align: center;">
+        <h1 class='app-header-title'>EXPENSES</h1>
+        <p class='app-header-subtitle'>Manage Your Spending</p>
     </div>
     """, unsafe_allow_html=True)
     
-    for _, row in df.sort_values('date', ascending=False).iterrows():
-        emoji = cat_emoji_map.get(row['category'], '🏷️')
-        with st.container():
-            c1, c2, c3, c4, c5 = st.columns([1, 1.5, 3, 1.2, 0.8])
-            c1.markdown(f"<p style='margin:0; font-family:var(--font-serif);'>{row['date'].strftime('%d %b %Y')}</p>", unsafe_allow_html=True)
-            c2.markdown(f"<p style='margin:0; font-family:var(--font-serif);'>{emoji} {row['category']}</p>", unsafe_allow_html=True)
-            c3.markdown(f"<p style='margin:0; font-family:var(--font-serif); color: #8b949e; overflow: hidden; text-overflow: ellipsis;'>{row['notes'] or '-'}</p>", unsafe_allow_html=True)
-            c4.markdown(f"<p style='margin:0; font-family:var(--font-serif); font-weight: 700; text-align: right; color: #ff4b4b;'>{format_currency(row['amount'])}</p>", unsafe_allow_html=True)
-            if c5.button("🗑️", key=f"del_v13_{row['id']}", use_container_width=True):
-                if delete_transaction(row['id'], user_id):
-                    st.rerun()
-            st.markdown("<div style='border-bottom: 1px solid rgba(255,255,255,0.03); margin: 5px 0;'></div>", unsafe_allow_html=True)
+    # --- Load Data & Categories ---
+    df = load_transactions_df(user_id)
+    if not df.empty:
+        df['date'] = pd.to_datetime(df['date']).dt.date
+        df = clean_category_icons(df, user_id=user_id)
+    
+    from src.database.crud import get_categories, get_category_map
+    cat_map = get_category_map(user_id)
+    # List of names for filtering/processing
+    all_cat_names = sorted(list(cat_map.keys()))
+    # List of "Icon Name" for display
+    display_cats = [f"{cat_map[c]} {c}".strip() for c in all_cat_names]
+    
+    # ==========================
+    # 1. ACTIONS (COLLAPSIBLE)
+    # ==========================
+    st.markdown("### ⚡ Actions")
+    
+    # --- ADD EXPENSE ---
+    with st.expander("▶ Add Expense", expanded=True): # Default expanded for better visibility
+        with st.form("add_txn_form", clear_on_submit=True):
+            c1, c2 = st.columns(2)
+            cat_display = c1.selectbox("Category", ["Select"] + display_cats)
+            mode = c2.selectbox("Mode", ["Select"] + PAYMENT_MODES)
+            amt = c1.number_input("Amount (₹)", min_value=0.0, value=0.0, step=1.0)
+            txn_date = c2.date_input("Date", value=today)
+            desc = st.text_input("Description (Optional)")
+            
+            submitted = st.form_submit_button("Save Expense", type="primary", use_container_width=True)
+            if submitted:
+                if cat_display == "Select" or mode == "Select":
+                    st.error("Category and Payment Mode required.")
+                elif amt <= 0:
+                    st.error("Please enter a valid amount.")
+                else:
+                    # Extract pure category name
+                    selected_cat_name = None
+                    for name in all_cat_names:
+                        if cat_display.endswith(name):
+                            selected_cat_name = name
+                            break
+                    
+                    if add_transaction(user_id, amt, selected_cat_name, mode, txn_date, desc):
+                        st.success("Saved!")
+                        # No need to manually set session state here if clear_on_submit=True
+                        # but ensure streamlit knows it's 0.
+                        time.sleep(1)
+                        st.rerun()
+                    else:
+                        st.error("Error saving.")
+
+    # --- EDIT/DELETE EXPENSE ---
+    c_edit, c_del = st.columns(2)
+    with c_edit:
+        with st.expander("▶ Edit Expense"):
+            e_cat_disp = st.selectbox("Category to Edit", ["Select"] + display_cats, key="edit_cat_disp")
+            if e_cat_disp != "Select" and not df.empty:
+                # Extract name
+                e_cat = None
+                for n in all_cat_names:
+                    if e_cat_disp.endswith(n):
+                        e_cat = n
+                        break
+                
+                matches = df[df['category'] == e_cat].sort_values('date', ascending=False)
+                if not matches.empty:
+                    matches['label'] = matches.apply(lambda x: f"{x['date']} | ₹{x['amount']} | {x['notes'][:20]}...", axis=1)
+                    sel_edit = st.selectbox("Select Transaction", matches['label'].tolist())
+                    
+                    row = matches[matches['label'] == sel_edit].iloc[0]
+                    with st.form("edit_txn_form"):
+                        u_cat = st.selectbox("New Category", display_cats, index=all_cat_names.index(row['category']))
+                        u_mode = st.selectbox("New Mode", PAYMENT_MODES, index=PAYMENT_MODES.index(row['payment_method']))
+                        u_amt = st.number_input("New Amount", value=float(row['amount']), min_value=0.1)
+                        u_date = st.date_input("New Date", value=row['date'])
+                        u_desc = st.text_input("New Description", value=row['notes'])
+                        
+                        if st.form_submit_button("Update"):
+                            # Extract updated name
+                            up_cat = None
+                            for n in all_cat_names:
+                                if u_cat.endswith(n):
+                                    up_cat = n
+                                    break
+                            if update_transaction(row['id'], user_id, u_amt, up_cat, u_mode, u_date, u_desc):
+                                st.success("Updated!")
+                                time.sleep(1)
+                                st.rerun()
+                else:
+                    st.info("No matches.")
+
+    with c_del:
+        with st.expander("▶ Delete Expense"):
+            del_cat_disp = st.selectbox("Category", ["Select"] + display_cats, key="del_cat_simp")
+            if del_cat_disp != "Select" and not df.empty:
+                d_cat = None
+                for n in all_cat_names:
+                    if del_cat_disp.endswith(n):
+                        d_cat = n
+                        break
+                
+                mask = (df['category'] == d_cat)
+                matches = df[mask].sort_values('date', ascending=False)
+                if not matches.empty:
+                    matches['label'] = matches.apply(lambda x: f"{x['date']} | ₹{x['amount']} | {x['notes'][:20]}...", axis=1)
+                    target = st.selectbox("Select to Delete", matches['label'].tolist())
+                    if st.button("Confirm Delete", type="primary", use_container_width=True):
+                        row_id = matches[matches['label'] == target].iloc[0]['id']
+                        if delete_transaction(row_id, user_id):
+                            st.success("Deleted.")
+                            time.sleep(1)
+                            st.rerun()
+                else:
+                    st.warning("Empty category.")
+            
+    st.markdown("---")
+
+    # ==========================
+    # 2. FILTERS
+    # ==========================
+    st.markdown("### 🔍 Search & Filter")
+    with st.container():
+        c1, c2, c3 = st.columns(3)
+        period = c1.selectbox("Period", ["Monthly", "Weekly", "Custom", "All"], index=0)
+        f_cat_disp = c2.selectbox("Category", ["All"] + display_cats, key="hist_cat")
+        f_mode = c3.selectbox("Payment Mode", ["All"] + PAYMENT_MODES, key="hist_mode")
+        
+        start_date = None
+        end_date = None
+        
+        if period == "Weekly":
+            start_date = today - timedelta(days=today.weekday())
+            end_date = today
+        elif period == "Monthly":
+            start_date = today.replace(day=1)
+            end_date = today
+        elif period == "Custom":
+            cd1, cd2 = st.columns(2)
+            start_date = cd1.date_input("Start", value=today.replace(day=1))
+            end_date = cd2.date_input("End", value=today)
+
+    # ==========================
+    # 3. HISTORY TABLE
+    # ==========================
+    view_df = df.copy()
+    if not view_df.empty:
+        # Resolve filter category name
+        filter_cat_name = "All"
+        if f_cat_disp != "All":
+            for n in all_cat_names:
+                if f_cat_disp.endswith(n):
+                    filter_cat_name = n
+                    break
+
+        if start_date: view_df = view_df[view_df['date'] >= start_date]
+        if end_date: view_df = view_df[view_df['date'] <= end_date]
+        if filter_cat_name != "All": view_df = view_df[view_df['category'] == filter_cat_name]
+        if f_mode != "All": view_df = view_df[view_df['payment_method'] == f_mode]
+        
+        view_df = view_df.sort_values(by='date', ascending=False)
+        
+        st.dataframe(
+            view_df[['date', 'category', 'payment_method', 'amount', 'notes']],
+            column_config={
+                "date": st.column_config.DateColumn("Date", format="DD MMM"),
+                "category": "Category",
+                "payment_method": "Mode",
+                "amount": st.column_config.NumberColumn("Amount", format="₹%.0f"),
+                "notes": "Description"
+            },
+            use_container_width=True,
+            hide_index=True
+        )
+    else:
+        st.info("No records found.")
+        
+    render_bottom_nav("transactions")

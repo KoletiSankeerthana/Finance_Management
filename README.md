@@ -1,48 +1,48 @@
-# FinancePro: Enterprise-Grade Expense Tracker
+# 💰 Expense Tracker: Professional Financial Intelligence
 
-A professional, secure, and feature-rich financial management application built with Streamlit and SQLite.
+A high-performance, executive-grade financial management application built with **Streamlit**, **Pandas**, and **Plotly**. Designed for individuals who demand precision and clarity in their financial tracking.
 
-## ✨ Features
+## ✨ Core Intelligence
 
-- **Executive Dashboard**: Real-time spending trends, category distribution, and KPI insights.
-- **Secure Authentication**: Bcrypt-backed password hashing and isolated user databases.
-- **Advanced CRUD**: Manage transactions, accounts, and categories with precision.
-- **Budgeting System**: Set monthly/yearly limits with automated threshold alerts (75%/90%).
-- **Financial Analytics**: Deep dive into spending habits with Plotly-powered visualizations.
-- **Smart Insights**: Rule-based intelligence for detecting unusual spikes and saving tips.
-- **Import/Export**: Bulk data management via CSV and Excel.
-- **Premium UI**: Clean, monochromatic design with focus on readability and modern typography.
+- **Executive Dashboard**: Real-time spending trajectory with WoW/MoM analysis.
+- **Strategic Budgeting**: Intelligent limit management with automated overflow alerts.
+- **Categorical Insights**: Dynamic transaction identification and precise grouping.
+- **Mobile-Responsive UI**: Premium typography (Times New Roman) and glassmorphism design.
+- **Data Integrity**: Secure SQLite storage with strict schema enforcement.
 
-## 🛠️ Tech Stack
+---
 
-- **Frontend/Framework**: [Streamlit](https://streamlit.io/)
-- **Database**: SQLite3
-- **Data Analysis**: Pandas, NumPy
-- **Visualizations**: Plotly Express
-- **Security**: Bcrypt
+## 🚀 Deployment Guide
 
-## 🚀 Getting Started
+### Option 1: Streamlit Cloud (Recommended)
+This is the fastest way to host your tracker for free.
 
-### 1. Install Dependencies
-```bash
-pip install -r requirements.txt
-```
+1. **Push to GitHub**: Ensure all code is pushed to your repository.
+2. **Connect to Streamlit**: Go to [share.streamlit.io](https://share.streamlit.io) and connect your GitHub account.
+3. **Deploy**: Select this repository and the `streamlit_app.py` file.
+4. **Done**: Your app will be live at a custom URL!
 
-### 2. Run the Application
-```bash
-streamlit run streamlit_app.py
-```
+### Option 2: Local Setup
+1. **Clone the Repo**
+   ```bash
+   git clone https://github.com/KoletiSankeerthana/Expense_Tracker.git
+   cd Expense_Tracker
+   ```
+2. **Install Dependencies**
+   ```bash
+   pip install -r requirements.txt
+   ```
+3. **Run Application**
+   ```bash
+   streamlit run streamlit_app.py
+   ```
 
-### 3. Login
-- **Username**: `testuser`
-- **Password**: `password123`
-*(Or Register a new account)*
+---
 
-## 📂 Project Structure
+## 🛠️ Architecture
+- **`src/database/`**: Robust CRUD layer and schema initialization.
+- **`src/pages/`**: Modularized view components for different features.
+- **`src/utils/`**: Shared navigation logic and UI constants.
 
-- `main.py`: Entry point and navigation router.
-- `src/auth/`: Security and session management.
-- `src/database/`: Schema definitions and CRUD logic.
-- `src/pages/`: Individual module implementations.
-- `src/components/`: Reusable UI elements and charts.
-- `src/utils/`: Formatting and validation helpers.
+---
+*Created by [Sankeerthana Koleti](https://github.com/KoletiSankeerthana)*

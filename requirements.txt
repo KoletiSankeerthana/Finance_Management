@@ -4,3 +4,4 @@ plotly
 bcrypt
 openpyxl
 cryptography
+fpdf2

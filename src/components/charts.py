@@ -10,17 +10,16 @@ def plot_category_distribution(df):
     cat_spend = df.groupby('category')['amount'].sum().reset_index()
     
     fig = px.pie(cat_spend, values='amount', names='category', 
-                 hole=0.75, # V9: thinner ring
-                 color_discrete_sequence=px.colors.qualitative.G10)
+                 hole=0.6,
+                 color_discrete_sequence=px.colors.sequential.Tealgrn)
     
     fig.update_layout(
         showlegend=True,
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)',
         font_color='#fafafa',
-        margin=dict(l=20, r=20, t=30, b=20),
-        height=350, # Increased height for better visibility
-        # V10: Modebar positioning (Top Right)
+        margin=dict(l=0, r=0, t=30, b=0),
+        height=350,
         modebar=dict(bgcolor='rgba(0,0,0,0)', color='#a4b0be', orientation='v')
     )
     # Ensure circularity by setting traces to fixed domain if needed, 

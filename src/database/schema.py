@@ -55,18 +55,24 @@ def init_db():
     )
     ''')
     
-    # Budgets Table
-    cursor.execute('''
-    CREATE TABLE IF NOT EXISTS budgets (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INTEGER NOT NULL,
-        category TEXT,
-        amount REAL NOT NULL,
-        period TEXT CHECK(period IN ('Monthly', 'Yearly')) NOT NULL,
-        start_date DATE NOT NULL,
-        FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
-    )
-    ''')
+    # Budgets Table (V41: Supporting Weekly, Monthly & Custom)
+    try:
+        # Instead of dropping, we can try to add the column if it doesn't exist
+        # But for this dev phase, the user requested a clean export/fix, so let's ensure schema is correct
+        cursor.execute('''
+        CREATE TABLE IF NOT EXISTS budgets (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            category TEXT,
+            amount REAL NOT NULL,
+            period TEXT CHECK(period IN ('Weekly', 'Monthly', 'Custom', 'Yearly')) NOT NULL,
+            start_date DATE NOT NULL,
+            end_date DATE,
+            FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+        )
+        ''')
+    except Exception as e:
+        print(f"Migration warning for budgets: {e}")
 
     conn.commit()
     conn.close()

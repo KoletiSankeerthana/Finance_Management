@@ -51,7 +51,7 @@ def init_user_defaults(user_id, cursor=None):
     # V3: Default categories with Emojis
     default_categories = [
         ('Food & Dining', '🍔'),
-        ('Transportation', '🚕'),
+        ('Transportation', ''),
         ('Shopping', '🛒'),
         ('Utilities', '💡'),
         ('Entertainment', '🎬'),
@@ -108,19 +108,40 @@ def get_category_map(user_id):
     cats = get_categories(user_id)
     return {c['name']: c['emoji'] for c in cats}
 
-def get_transactions(user_id):
-    # V6: Caching
-    cache_key = f"tx_{user_id}"
-    if cache_key in st.session_state:
-        return st.session_state[cache_key]
-
+def load_transactions_df(user_id, filters=None):
+    # V6: Caching (Simplified for this version - only cache unfiltered full view)
+    cache_key = f"tx_{user_id}_full"
+    
+    # If filters are provided, we skip the simple session state cache for now
+    # to ensure real-time accuracy, or we filter the cached DF.
+    
     conn = get_connection()
-    # Return as DataFrame for easy analysis
-    df = pd.read_sql("SELECT * FROM transactions WHERE user_id = ? ORDER BY date DESC", conn, params=(user_id,))
+    query = "SELECT * FROM transactions WHERE user_id = ?"
+    params = [user_id]
+    
+    if filters:
+        if 'start_date' in filters and filters['start_date']:
+            query += " AND date >= ?"
+            params.append(filters['start_date'])
+        if 'end_date' in filters and filters['end_date']:
+            query += " AND date <= ?"
+            params.append(filters['end_date'])
+        if 'category' in filters and filters['category'] and filters['category'] != "All":
+            query += " AND category = ?"
+            params.append(filters['category'])
+        if 'payment_mode' in filters and filters['payment_mode'] and filters['payment_mode'] != "All":
+            query += " AND payment_method = ?"
+            params.append(filters['payment_mode'])
+    
+    query += " ORDER BY date DESC"
+    
+    df = pd.read_sql(query, conn, params=params)
     conn.close()
     
-    # Store in session state cache
-    st.session_state[cache_key] = df
+    # Convert 'date' column to datetime objects
+    if not df.empty:
+        df['date'] = pd.to_datetime(df['date'])
+        
     return df
 
 def _clear_cache():
@@ -167,17 +188,34 @@ def get_budgets(user_id):
     conn.close()
     return budgets
 
-def add_budget(user_id, category, amount, period, start_date):
+def add_budget(user_id, category, amount, period, start_date, end_date=None):
     conn = get_connection()
     cursor = conn.cursor()
     try:
+        # Check if exists
         cursor.execute(
-            "INSERT INTO budgets (user_id, category, amount, period, start_date) VALUES (?, ?, ?, ?, ?)",
-            (user_id, category, amount, period, start_date)
+            "SELECT id FROM budgets WHERE user_id = ? AND category = ? AND period = ?",
+            (user_id, category, period)
         )
+        existing = cursor.fetchone()
+        
+        if existing:
+            # Update
+            cursor.execute(
+                "UPDATE budgets SET amount = ?, start_date = ?, end_date = ? WHERE id = ?",
+                (amount, start_date, end_date, existing[0])
+            )
+        else:
+            # Insert
+            cursor.execute(
+                "INSERT INTO budgets (user_id, category, amount, period, start_date, end_date) VALUES (?, ?, ?, ?, ?, ?)",
+                (user_id, category, amount, period, start_date, end_date)
+            )
         conn.commit()
         return True
-    except: return False
+    except Exception as e: 
+        print(f"Error adding budget: {e}")
+        return False
     finally: conn.close()
 
 def delete_budget(budget_id, user_id):
@@ -225,4 +263,35 @@ def update_password_by_email(email, hashed_password):
         cursor.execute('UPDATE users SET password_hash = ? WHERE email = ?', (hashed_password, email))
         conn.commit()
         return cursor.rowcount > 0
+    finally: conn.close()
+def get_most_used_category(user_id):
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT category, COUNT(category) as count 
+        FROM transactions 
+        WHERE user_id = ? 
+        GROUP BY category 
+        ORDER BY count DESC 
+        LIMIT 1
+    """, (user_id,))
+    res = cursor.fetchone()
+    conn.close()
+    return res['category'] if res else None
+
+def update_transaction(transaction_id, user_id, amount, category, payment_method, date, notes):
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("""
+            UPDATE transactions 
+            SET amount = ?, category = ?, payment_method = ?, date = ?, notes = ?
+            WHERE id = ? AND user_id = ?
+        """, (amount, category, payment_method, date, notes, transaction_id, user_id))
+        conn.commit()
+        _clear_cache()
+        return cursor.rowcount > 0
+    except Exception as e:
+        print(f"Error updating transaction: {e}")
+        return False
     finally: conn.close()
