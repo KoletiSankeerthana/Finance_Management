@@ -12,7 +12,7 @@ def render_intro():
     
     # What is this Expense Tracker
     st.markdown("""
-    ### 📊 What is this Expense Tracker?
+    ###  What is this Expense Tracker?
     
     A comprehensive personal finance management tool designed to help you take control of your spending. 
     Track every transaction, set budgets, visualize your spending patterns, and make informed financial 
@@ -24,7 +24,7 @@ def render_intro():
     
     # How to use (step-by-step)
     st.markdown("""
-    ### 🚀 How to Use
+    ###  How to Use
     
     **Step 1: Add Expense**  
     Record your daily spending by entering the amount, category, payment method, and optional notes.
@@ -53,7 +53,7 @@ def render_intro():
     
     # Why it is useful
     st.markdown("""
-    ### 💡 Why It's Useful
+    ###  Why It's Useful
     
     **Budget Control**  
     Set clear spending limits and track your progress in real-time. Know exactly how much you have 

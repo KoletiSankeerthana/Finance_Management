@@ -53,7 +53,7 @@ def render_budgets():
     st.markdown("---")
 
     # --- Active Budgets ---
-    st.markdown("### 📊 Budget Tracking")
+    st.markdown("### Budget Tracking")
     budgets = get_budgets(user_id)
     
     if budgets:

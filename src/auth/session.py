@@ -7,8 +7,14 @@ def init_session_state():
         st.session_state.user_id = None
     if "email" not in st.session_state:
         st.session_state.email = None
+    if "current_page" not in st.session_state:
+        st.session_state.current_page = "Dashboard"
+    if "sidebar_expanded" not in st.session_state:
+        st.session_state.sidebar_expanded = True
+    
+    # Old key migration (optional safety)
     if "page" not in st.session_state:
-        st.session_state.page = "welcome"
+        st.session_state.page = "dashboard"
     
     # OTP States (Demo Only)
     if "reset_otp" not in st.session_state:

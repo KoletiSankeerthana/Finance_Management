@@ -16,7 +16,7 @@ PAGE_ORDER = list(PAGES.keys())
 def render_bottom_nav(current_page_key):
     """
     Renders Previous (<) and Next (>) buttons at the bottom of the page.
-    Updates st.session_state.page and reruns.
+    Updates st.session_state.current_page and reruns.
     """
     st.markdown("---")
     try:
@@ -31,17 +31,15 @@ def render_bottom_nav(current_page_key):
         prev_key = PAGE_ORDER[idx - 1]
         prev_label = PAGES[prev_key]
         if cols[0].button(f"← {prev_label}", key=f"nav_prev_{current_page_key}", use_container_width=True):
-            st.session_state.page = prev_key
+            st.session_state.current_page = prev_label
             st.rerun()
             
     # Next Button
     if idx < len(PAGE_ORDER) - 1:
         next_key = PAGE_ORDER[idx + 1]
         next_label = PAGES[next_key]
-        # If it's the first page, Next is on the right. If middle page, Next is on the right. 
-        # Streamlit columns are stable enough here.
         if cols[1].button(f"{next_label} →", key=f"nav_next_{current_page_key}", use_container_width=True):
-            st.session_state.page = next_key
+            st.session_state.current_page = next_label
             st.rerun()
 
 def clean_category_icons(df, user_id=None):

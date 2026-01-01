@@ -246,80 +246,97 @@ def login_page():
                     st.rerun()
 
 # --- Main App Logic ---
+# ROUTING SYSTEM (V42: Persistent Sidebar + Toggle)
+NAV_CONFIG = {
+    "Home": {"icon": "🏠", "render": "render_intro", "import": "src.pages.intro"},
+    "Dashboard": {"icon": "📊", "render": "render_dashboard", "import": "src.pages.dashboard"},
+    "Expenses": {"icon": "📄", "render": "render_transactions", "import": "src.pages.transactions"},
+    "Categories": {"icon": "🗂️", "render": "render_categories", "import": "src.pages.categories"},
+    "Analytics": {"icon": "📈", "render": "render_analytics", "import": "src.pages.analytics"},
+    "Budgets": {"icon": "💰", "render": "render_budgets", "import": "src.pages.budgets"},
+    "Settings": {"icon": "⚙️", "render": "render_settings", "import": "src.pages.settings"}
+}
+
 if not st.session_state.authenticated:
     login_page()
 else:
-    # Sidebar Header
-    st.sidebar.markdown(f"""
-    <div style='padding: 10px 0 10px 0;'>
-        <p class='sidebar-title' style='font-size:1.5rem; font-weight:bold; color:var(--primary);'>{APP_TITLE}</p>
-        <p class='sidebar-subtitle' style='font-size: 0.75rem;'>{APP_SUBTITLE}</p>
-    </div>
+    # Sidebar Toggle & Styling
+    expanded = st.session_state.sidebar_expanded
+    
+    # CSS for Sidebar Width control
+    sidebar_width = "280px" if expanded else "80px"
+    st.markdown(f"""
+        <style>
+        [data-testid="stSidebar"] {{
+            min-width: {sidebar_width} !important;
+            max-width: {sidebar_width} !important;
+            transition: all 0.3s ease-in-out;
+        }}
+        [data-testid="stSidebarNav"] {{ display: none; }} /* Hide default nav */
+        
+        .nav-btn {{
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-bottom: 5px;
+            transition: background 0.2s;
+        }}
+        .nav-btn:hover {{ background: rgba(255,255,255,0.05); }}
+        .nav-active {{ background: rgba(0, 128, 128, 0.2) !important; border-left: 3px solid #008080; }}
+        </style>
     """, unsafe_allow_html=True)
-    
-    # Identity
-    email = st.session_state.email
-    st.sidebar.markdown(f"**Operator:** {email}") # Simplified
-    
-    st.sidebar.markdown("---")
 
-    # Navigation (Strict Order 1-7)
-    pages_config = {
-        "welcome": "🏠 Home",
-        "dashboard": "📊 Dashboard",
-        "transactions": "📄 Expenses",
-        "categories": "🗂️ Categories",
-        "analytics": "📈 Analytics",
-        "budgets": "💰 Budgets",
-        "settings": "⚙️ Settings"
-    }
-    
-    if 'page' not in st.session_state or st.session_state.page not in pages_config:
-        st.session_state.page = "welcome"
+    with st.sidebar:
+        # Toggle Button (<< >>)
+        toggle_label = "<<" if expanded else ">>"
+        if st.button(toggle_label, key="sidebar_toggle", help="Expand/Collapse Sidebar"):
+            st.session_state.sidebar_expanded = not st.session_state.sidebar_expanded
+            st.rerun()
 
-    current_label = pages_config.get(st.session_state.page, "🏠 Welcome")
-    
-    selected_label = st.sidebar.radio(
-        "Navigation",
-        options=list(pages_config.values()),
-        index=list(pages_config.values()).index(current_label),
-        label_visibility="collapsed"
-    )
-    
-    new_page_key = [k for k, v in pages_config.items() if v == selected_label][0]
-    if st.session_state.page != new_page_key:
-        st.session_state.page = new_page_key
-        st.rerun()
+        if expanded:
+            st.markdown(f"""
+            <div style='padding: 0 0 20px 0;'>
+                <p style='font-size:1.5rem; font-weight:bold; color:var(--primary); margin:0;'>{APP_TITLE}</p>
+                <p style='font-size: 0.75rem; color:var(--text-muted);'>{APP_SUBTITLE}</p>
+            </div>
+            """, unsafe_allow_html=True)
+            st.markdown(f"👤 **{st.session_state.email}**")
+            st.markdown("---")
+        else:
+            st.markdown("<div style='height: 40px;'></div>", unsafe_allow_html=True)
 
-    st.sidebar.markdown("---")
-    if st.sidebar.button("🔓 Log Out", use_container_width=True):
-        logout_user()
-        st.rerun()
+        # Navigation Menu
+        for label, config in NAV_CONFIG.items():
+            is_active = st.session_state.current_page == label
+            
+            # Use buttons for navigation to ensure persistence and instant updates
+            btn_label = f"{config['icon']} {label}" if expanded else config['icon']
+            
+            if st.button(
+                btn_label, 
+                key=f"nav_{label}", 
+                use_container_width=True,
+                type="primary" if is_active else "secondary"
+            ):
+                st.session_state.current_page = label
+                st.rerun()
 
-    # Routing
-    page = st.session_state.page
+        st.markdown("---")
+        if st.button("🔓 Logout", use_container_width=True, key="sidebar_logout"):
+            logout_user()
+
+    # Route Rendering
+    curr_page_label = st.session_state.current_page
+    if curr_page_label not in NAV_CONFIG:
+        curr_page_label = "Dashboard"
+        st.session_state.current_page = "Dashboard"
+
+    config = NAV_CONFIG[curr_page_label]
     
-    if page == "welcome":
-        from src.pages.intro import render_intro
-        render_intro()
-    elif page == "dashboard":
-        from src.pages.dashboard import render_dashboard
-        render_dashboard()
-    elif page == "transactions":
-        from src.pages.transactions import render_transactions
-        render_transactions()
-    elif page == "categories":
-        from src.pages.categories import render_categories
-        render_categories()
-    elif page == "analytics":
-        from src.pages.analytics import render_analytics
-        render_analytics()
-    elif page == "budgets":
-        from src.pages.budgets import render_budgets
-        render_budgets()
-    elif page == "settings":
-        from src.pages.settings import render_settings
-        render_settings()
-    else:
-        st.session_state.page = "welcome"
-        st.rerun()
+    # Dynamic Import and Call
+    import importlib
+    module = importlib.import_module(config['import'])
+    content_func = getattr(module, config['render'])
+    content_func()
