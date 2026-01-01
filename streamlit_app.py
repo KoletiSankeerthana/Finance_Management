@@ -55,12 +55,17 @@ def local_css():
     
     .app-header-title {
         font-weight: 700 !important;
-        font-size: 3.5rem !important;
+        font-size: clamp(2rem, 10vw, 3.5rem) !important; /* Responsive scaling */
+        white-space: nowrap !important; /* Force one line */
         text-transform: uppercase !important;
         text-align: center !important;
         background: linear-gradient(180deg, #ffffff 0%, #a4b0be 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
+        display: block;
+        width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .app-header-subtitle {
@@ -103,6 +108,35 @@ def local_css():
     .stButton>button:hover {
         background: var(--secondary) !important;
         transform: scale(1.02) !important;
+    }
+
+    /* Floating Toggle for Mobile/Collapsed Sidebar */
+    .stButton > div > button[key^="mobile_toggle"] {
+        position: fixed !important;
+        top: 15px !important;
+        left: 15px !important;
+        z-index: 999999 !important;
+        background: var(--bg-card) !important;
+        border: 1px solid var(--border) !important;
+        border-radius: 50% !important;
+        width: 50px !important;
+        height: 50px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        transition: all 0.3s ease !important;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.6) !important;
+        padding: 0 !important;
+    }
+    .stButton > div > button[key^="mobile_toggle"]:hover {
+        background: var(--primary) !important;
+        transform: scale(1.1) !important;
+        border-color: var(--primary) !important;
+    }
+    .stButton > div > button[key^="mobile_toggle"] div p {
+        font-size: 1.5rem !important;
+        margin: 0 !important;
+        line-height: 1 !important;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -275,9 +309,19 @@ else:
         [data-testid="stSidebarNav"] {{ display: none; }} /* Hide default nav */
         
         /* Prevent vertical wrapping on small sidebars */
-        .stButton button {{ white-space: nowrap !important; overflow: hidden !important; }}
+        .stButton button { white-space: nowrap !important; overflow: hidden !important; }
+        
+        /* Hide default Streamlit sidebar toggle to use our own floating one */
+        button[kind="header"] { display: none !important; }
         </style>
     """, unsafe_allow_html=True)
+
+    # Floating Toggle for accessibility when sidebar is collapsed
+    if not expanded:
+        # Use a real Streamlit button but style it as a floating circle
+        if st.button("☰", key="mobile_toggle_main", help="Expand Sidebar"):
+            st.session_state.sidebar_expanded = True
+            st.rerun()
 
     with st.sidebar:
         # Centered Toggle Button (<< >>)
