@@ -83,7 +83,7 @@ def render_sidebar():
             display: flex !important; /* Always show our custom toggle */
         }
         </style>
-        <div class="custom-hamburger" onclick="window.parent.document.querySelectorAll('button').forEach(btn => { if(btn.innerText.includes('☰')) btn.click(); })">
+        <div class="custom-hamburger" onclick="window.parent.document.querySelectorAll('button').forEach(btn => { if(btn.innerText.includes('»') || btn.innerText.includes('«')) btn.click(); })">
             <span style="font-size: 1.2rem;">☰</span>
         </div>
     """, unsafe_allow_html=True)
