@@ -151,7 +151,9 @@ def render_sidebar():
                 <p style='font-size: 0.7rem; color:var(--text-muted);'>{APP_SUBTITLE}</p>
             </div>
             """, unsafe_allow_html=True)
-            st.markdown(f"👤 **{st.session_state.email}**")
+            # Display username (derived from email)
+            username = st.session_state.email.split('@')[0] if st.session_state.email else "User"
+            st.markdown(f"👤 **{username}**")
             st.markdown("---")
         else:
             st.markdown("<div style='height: 20px;'></div>", unsafe_allow_html=True)
@@ -190,13 +192,14 @@ def render_bottom_nav(current_page_key):
     except ValueError:
         return
 
-    cols = st.columns(2)
+    # Narrower columns for buttons (reduced width as requested)
+    cols = st.columns([1, 2, 2, 1])
     
     # Previous Button
     if idx > 0:
         prev_key = PAGE_ORDER[idx - 1]
         prev_label = PAGES[prev_key]
-        if cols[0].button(f"← {prev_label}", key=f"nav_prev_{current_page_key}", use_container_width=True):
+        if cols[1].button(f"← {prev_label}", key=f"nav_prev_{current_page_key}", use_container_width=True):
             st.session_state.current_page = prev_label
             st.rerun()
             
@@ -204,7 +207,7 @@ def render_bottom_nav(current_page_key):
     if idx < len(PAGE_ORDER) - 1:
         next_key = PAGE_ORDER[idx + 1]
         next_label = PAGES[next_key]
-        if cols[1].button(f"{next_label} →", key=f"nav_next_{current_page_key}", use_container_width=True):
+        if cols[2].button(f"{next_label} →", key=f"nav_next_{current_page_key}", use_container_width=True):
             st.session_state.current_page = next_label
             st.rerun()
 
