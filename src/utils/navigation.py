@@ -154,31 +154,39 @@ def render_sidebar():
         with st.container():
             # Inject CSS to hide this specific container content
             st.markdown('<div class="hidden-toggle-container">', unsafe_allow_html=True)
-            if expanded:
-                 if st.button("«", key="sidebar_toggle_collapse"):
-                    st.session_state.sidebar_expanded = False
-                    st.rerun()
-            else:
-                 if st.button("»", key="sidebar_toggle_expand"):
-                    st.session_state.sidebar_expanded = True
-                    st.rerun()
-            st.markdown('</div>', unsafe_allow_html=True)
-            # Apply display:none to the container via more specific CSS if needed, 
-            # but usually the script above or inline style works best if Streamlit allowed it. 
-            # Since Streamlit Markdown implies HTML, we matched the div class above.
-            
-            # FORCE HIDE using direct styling injection for the buttons based on key/text check
+            # Force HIDE the internal proxy buttons using strict CSS targeting by title attribute
             st.markdown("""
             <style>
-            /* Target buttons by their text content hack */
-            button:has(div p:contains("«")), button:has(div p:contains("»")) {
-                visibility: hidden;
-                position: absolute;
-                width: 0;
-                height: 0;
+            /* Hide the native Streamlit sidebar close button (The '<' chevron) */
+            [data-testid="stSidebar"] button[kind="header"] {
+                display: none !important;
+            }
+            
+            /* Hide our custom proxy buttons (The Green '«' / '»') */
+            /* We use visibility:hidden so they stay in DOM for JS to click */
+            button[title="Collapse Sidebar"], button[title="Expand Sidebar"] {
+                visibility: hidden !important;
+                position: absolute !important;
+                width: 1px !important;
+                height: 1px !important;
+                padding: 0 !important;
+                margin: -1px !important;
+                overflow: hidden !important;
+                clip: rect(0,0,0,0) !important;
+                border: 0 !important;
             }
             </style>
             """, unsafe_allow_html=True)
+            
+            if expanded:
+                 if st.button("«", key="sidebar_toggle_collapse", help="Collapse Sidebar"):
+                    st.session_state.sidebar_expanded = False
+                    st.rerun()
+            else:
+                 if st.button("»", key="sidebar_toggle_expand", help="Expand Sidebar"):
+                    st.session_state.sidebar_expanded = True
+                    st.rerun()
+            st.markdown('</div>', unsafe_allow_html=True)
 
         st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
 
