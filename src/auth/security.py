@@ -1,3 +1,4 @@
+import bcrypt
 from src.database.crud import get_user_by_username as db_get_user_username, update_password
 
 def hash_password(password: str) -> str:

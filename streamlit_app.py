@@ -169,7 +169,7 @@ def login_page():
         </div>
         """, unsafe_allow_html=True)
         
-        tab1, tab2 = st.tabs(["Login", "Register"])
+        tab1, tab2, tab3 = st.tabs(["Login", "Register", "Forgot Password"])
         
         with tab1:
             with st.form("login_form", clear_on_submit=False):
@@ -223,8 +223,80 @@ def login_page():
                             else:
                                 st.error("Failed to create account")
                             
-        # Forgot Password Tab Removed as per user request
-        pass
+        with tab3:
+            st.markdown("### 🔑 Reset Password")
+            
+            if not st.session_state.get("reset_username"):
+                st.info("Enter your username to generate a demo OTP.")
+                with st.form("otp_generate_form"):
+                    user_input = st.text_input("Username")
+                    generate_btn = st.form_submit_button("Generate OTP", use_container_width=True)
+                    
+                    if generate_btn:
+                        from src.auth.security import get_user_by_username
+                        user = get_user_by_username(user_input)
+                        if user:
+                            otp = str(random.randint(100000, 999999))
+                            st.session_state.reset_otp = otp
+                            st.session_state.reset_username = user_input
+                            st.session_state.otp_expiry = datetime.now() + timedelta(minutes=5)
+                            st.session_state.otp_verified = False
+                            st.rerun()
+                        else:
+                            st.error("No account found with this username.")
+            
+            elif st.session_state.get("reset_username") and not st.session_state.get("otp_verified"):
+                st.warning(f"🔧 **DEV MODE OTP: {st.session_state.reset_otp}**")
+                
+                with st.form("otp_verify_form"):
+                    input_otp = st.text_input("Enter 6-digit OTP", placeholder="123456")
+                    verify_btn = st.form_submit_button("Verify OTP", use_container_width=True)
+                    
+                    if verify_btn:
+                        if datetime.now() > st.session_state.otp_expiry:
+                            st.error("OTP expired.")
+                            st.session_state.reset_username = None
+                        elif input_otp == st.session_state.reset_otp:
+                            st.session_state.otp_verified = True
+                            st.success("OTP Verified!")
+                            st.rerun()
+                        else:
+                            st.error("Invalid OTP.")
+                
+                if st.button("Cancel & Restart"):
+                    st.session_state.reset_username = None
+                    st.rerun()
+
+            elif st.session_state.get("otp_verified"):
+                st.success(f"Verified for: {st.session_state.reset_username}")
+                with st.form("new_password_form_otp"):
+                    new_pass = st.text_input("New Password", type="password", placeholder="Min 8 chars")
+                    conf_pass = st.text_input("Confirm Password", type="password")
+                    reset_btn = st.form_submit_button("Reset Password", use_container_width=True)
+                    
+                    if reset_btn:
+                        if new_pass != conf_pass:
+                            st.error("Passwords do not match.")
+                        elif len(new_pass) < 8:
+                            st.error("Min 8 characters required.")
+                        else:
+                            from src.auth.security import get_user_by_username
+                            from src.database.crud import update_password
+                            user = get_user_by_username(st.session_state.reset_username)
+                            user_id = user['id'] if hasattr(user, 'keys') else user[0]
+                            if update_password(user_id, hash_password(new_pass)):
+                                st.success("Password reset successful!")
+                                st.session_state.reset_username = None
+                                st.session_state.reset_otp = None
+                                st.session_state.otp_verified = False
+                                st.info("Please sign in.")
+                                st.rerun()
+                            else:
+                                st.error("Failed to reset password.")
+                
+                if st.button("Cancel"):
+                    st.session_state.reset_username = None
+                    st.rerun()
 
 # --- Main App Logic ---
 from src.utils.navigation import render_sidebar, NAV_CONFIG
