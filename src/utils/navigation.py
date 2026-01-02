@@ -151,50 +151,50 @@ def render_sidebar():
     with st.sidebar:
         # Internal State Management Buttons (HIDDEN via container class)
         # These manage the actual python state.
-            # Force HIDE the internal proxy buttons using JavaScript (More robust than CSS :has)
-            st.markdown("""
-            <script>
-            function hideArrows() {
-                const doc = window.parent.document;
-                const buttons = doc.querySelectorAll('button');
+        
+        # Force HIDE the internal proxy buttons using JavaScript (More robust than CSS :has)
+        st.markdown("""
+        <script>
+        function hideArrows() {
+            const doc = window.parent.document;
+            const buttons = doc.querySelectorAll('button');
+            
+            buttons.forEach(btn => {
+                // 1. Hide Native Sidebar Close Button (Chevron)
+                if (btn.getAttribute("kind") === "header") {
+                    btn.style.display = 'none';
+                }
                 
-                buttons.forEach(btn => {
-                    // 1. Hide Native Sidebar Close Button (Chevron)
-                    if (btn.getAttribute("kind") === "header") {
-                        btn.style.display = 'none';
-                    }
-                    
-                    // 2. Hide our Internal Proxy Buttons (« and »)
-                    // We check innerText carefully
-                    if (btn.innerText.includes("«") || btn.innerText.includes("»")) {
-                        btn.style.display = 'none';
-                        // Ensure they are still clickable by JS but invisible layout-wise
-                        // Actually display:none might make them unclickable? 
-                        // No, click() works on display:none elements in most browsers, 
-                        // but visibility:hidden is safer for clickability if display:none prevents interaction event dispatch.
-                        // Let's use visibility:hidden + absolute positioning to remove layout space.
-                        btn.style.visibility = 'hidden';
-                        btn.style.position = 'absolute';
-                        btn.style.width = '0px';
-                        btn.style.height = '0px';
-                    }
-                });
-            }
-            
-            // Run immediately and on frequent intervals to catch re-renders
-            hideArrows();
-            setTimeout(hideArrows, 100);
-            setTimeout(hideArrows, 500);
-            setInterval(hideArrows, 1000); // Polling ensures it stays hidden if Streamlit re-mounts
-            </script>
-            <style>
-            /* Fallback CSS for native header */
-            [data-testid="stSidebar"] button[kind="header"] {
-                display: none !important;
-            }
-            </style>
-            """, unsafe_allow_html=True)
-            
+                // 2. Hide our Internal Proxy Buttons (« and »)
+                // We check innerText carefully
+                if (btn.innerText.includes("«") || btn.innerText.includes("»")) {
+                    btn.style.display = 'none';
+                    // Ensure they are still clickable by JS but invisible layout-wise
+                    btn.style.visibility = 'hidden';
+                    btn.style.position = 'absolute';
+                    btn.style.width = '0px';
+                    btn.style.height = '0px';
+                }
+            });
+        }
+        
+        // Run immediately and on frequent intervals to catch re-renders
+        hideArrows();
+        setTimeout(hideArrows, 100);
+        setTimeout(hideArrows, 500);
+        setInterval(hideArrows, 1000); // Polling ensures it stays hidden if Streamlit re-mounts
+        </script>
+        <style>
+        /* Fallback CSS for native header */
+        [data-testid="stSidebar"] button[kind="header"] {
+            display: none !important;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+
+        with st.container():
+             # Inject CSS to hide this specific container content
+            st.markdown('<div class="hidden-toggle-container">', unsafe_allow_html=True)
             if expanded:
                  if st.button("«", key="sidebar_toggle_collapse"):
                     st.session_state.sidebar_expanded = False
