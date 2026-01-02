@@ -224,36 +224,7 @@ def login_page():
                                 st.error("Failed to create account")
                             
         # Forgot Password Tab Removed as per user request
-                
-                if st.button("Cancel & Restart"):
-                    st.session_state.reset_email = None
-                    st.rerun()
-
-            elif st.session_state.get("otp_verified"):
-                st.success(f"Verified for: {st.session_state.reset_email}")
-                with st.form("new_password_form_otp"):
-                    new_pass = st.text_input("New Password", type="password", placeholder="Min 8 chars")
-                    conf_pass = st.text_input("Confirm Password", type="password")
-                    reset_btn = st.form_submit_button("Reset Password", use_container_width=True)
-                    
-                    if reset_btn:
-                        if new_pass != conf_pass:
-                            st.error("Passwords do not match.")
-                        elif len(new_pass) < 8:
-                            st.error("Min 8 characters required.")
-                        else:
-                            if update_password_by_email(st.session_state.reset_email, hash_password(new_pass)):
-                                st.success("Password reset successful!")
-                                st.session_state.reset_email = None
-                                st.session_state.reset_otp = None
-                                st.session_state.otp_verified = False
-                                st.info("Please sign in.")
-                            else:
-                                st.error("Failed to update password.")
-                
-                if st.button("Cancel"):
-                    st.session_state.reset_email = None
-                    st.rerun()
+        pass
 
 # --- Main App Logic ---
 from src.utils.navigation import render_sidebar, NAV_CONFIG
