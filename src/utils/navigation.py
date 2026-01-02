@@ -43,25 +43,35 @@ def render_sidebar():
         }}
         [data-testid="stSidebarNav"] {{ display: none; }} /* Hide default nav */
         
-        /* Prevent vertical wrapping on small sidebars */
-        /* Prevent vertical wrapping on small sidebars - COMPACT STYLE */
-        .stButton button {{ 
-            white-space: nowrap !important; 
-            overflow: hidden !important; 
-            text-align: left !important;
-            padding: 2px 12px !important;  /* Reduced padding for 'little up' compactness */
-            height: 42px !important;       /* Fixed smaller height */
-            min-height: 42px !important;
-            margin-bottom: 4px !important; /* Tighter spacing */
+        /* Prevent ANY vertical character stacking */
+        [data-testid="stSidebar"] * {{
+            word-break: keep-all !important;
+            overflow-wrap: normal !important;
+            white-space: nowrap !important;
         }}
         
-        /* Sidebar item text stays in one line */
+        /* Sidebar item text stays in one line with ellipsis */
         div[data-testid="stSidebar"] button div p {{
-            white-space: nowrap !important;
-            overflow: hidden !important;
             text-overflow: ellipsis !important;
             display: block !important;
-            font-size: 0.95rem !important; /* Slightly smaller font for neatness */
+            font-size: 0.9rem !important;
+        }}
+
+        /* Responsive Breakpoints */
+        @media (max-width: 1024px) {{
+            /* Desktop/Tablet transition: Force collapse to icons visually */
+            [data-testid="stSidebar"] {{
+                min-width: 80px !important;
+                max-width: 80px !important;
+            }}
+            /* Hide any text label inside buttons on small screens */
+            [data-testid="stSidebar"] button div p {{
+                display: none !important;
+            }}
+            /* Hide title and username text on small screens */
+            .sidebar-text-container, .username-text {{
+                display: none !important;
+            }}
         }}
         
         /* Hide default Streamlit sidebar toggle */
@@ -148,20 +158,14 @@ def render_sidebar():
 
         if expanded:
             st.markdown(f"""
-            <div style='padding: 0 0 15px 10px; text-align: left; min-width: 200px;'>
-                <p style='font-size:1.4rem; font-weight:bold; color:var(--primary); margin:0; 
-                          white-space: nowrap; overflow: hidden; text-overflow: ellipsis;'>
-                    {APP_TITLE}
-                </p>
-                <p style='font-size: 0.7rem; color:var(--text-muted); margin:0;
-                          white-space: nowrap; overflow: hidden; text-overflow: ellipsis;'>
-                    {APP_SUBTITLE}
-                </p>
+            <div class='sidebar-text-container' style='padding: 0 0 15px 10px; text-align: left;'>
+                <p style='font-size:1.2rem; font-weight:bold; color:var(--primary); margin:0;'>{APP_TITLE}</p>
+                <p style='font-size: 0.7rem; color:var(--text-muted); margin:0;'>{APP_SUBTITLE}</p>
             </div>
             """, unsafe_allow_html=True)
             # Display username
             username = st.session_state.get('username', "User")
-            st.markdown(f"👤 **{username}**")
+            st.markdown(f"<p class='username-text' style='margin-left: 10px;'>👤 **{username}**</p>", unsafe_allow_html=True)
             st.markdown("---")
         else:
             st.markdown("<div style='height: 20px;'></div>", unsafe_allow_html=True)
@@ -186,6 +190,8 @@ def render_sidebar():
                 st.rerun()
 
         st.markdown("---")
+        # Use a div to allow CSS targeting for text part if needed, 
+        # but for buttons we rely on the global div[data-testid="stSidebar"] button div p rule
         logout_btn_label = "🔓 Logout" if expanded else "🔓"
         if st.button(logout_btn_label, use_container_width=True, key="sidebar_logout"):
             logout_user()
