@@ -8,7 +8,7 @@ def init_session_state():
     if "email" not in st.session_state:
         st.session_state.email = None
     if "current_page" not in st.session_state:
-        st.session_state.current_page = "Dashboard"
+        st.session_state.current_page = "Home"  # Changed to Home as landing page
     if "sidebar_expanded" not in st.session_state:
         st.session_state.sidebar_expanded = True
     

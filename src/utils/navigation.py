@@ -3,6 +3,7 @@ from src.utils.constants import CATEGORY_ICONS, APP_TITLE, APP_SUBTITLE
 from src.auth.session import logout_user
 
 PAGES = {
+    "home": "Home",
     "dashboard": "Dashboard",
     "transactions": "Add Expense",
     "categories": "Categories",
@@ -14,6 +15,7 @@ PAGES = {
 PAGE_ORDER = list(PAGES.keys())
 
 NAV_CONFIG = {
+    "Home": {"icon": "🏠", "render": "render_home", "import": "src.pages.home"},
     "Dashboard": {"icon": "📊", "render": "render_dashboard", "import": "src.pages.dashboard"},
     "Add Expense": {"icon": "➕", "render": "render_transactions", "import": "src.pages.transactions"},
     "Categories": {"icon": "🏷️", "render": "render_categories", "import": "src.pages.categories"},
@@ -192,18 +194,18 @@ def render_bottom_nav(current_page_key):
     except ValueError:
         return
 
-    # Narrower columns for buttons (reduced width as requested)
-    cols = st.columns([1, 2, 2, 1])
+    # Left and Right corner positioning (as requested)
+    cols = st.columns([3, 4, 3])
     
-    # Previous Button
+    # Previous Button (Left corner)
     if idx > 0:
         prev_key = PAGE_ORDER[idx - 1]
         prev_label = PAGES[prev_key]
-        if cols[1].button(f"← {prev_label}", key=f"nav_prev_{current_page_key}", use_container_width=True):
+        if cols[0].button(f"← {prev_label}", key=f"nav_prev_{current_page_key}", use_container_width=True):
             st.session_state.current_page = prev_label
             st.rerun()
             
-    # Next Button
+    # Next Button (Right corner)
     if idx < len(PAGE_ORDER) - 1:
         next_key = PAGE_ORDER[idx + 1]
         next_label = PAGES[next_key]
