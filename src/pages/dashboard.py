@@ -98,8 +98,9 @@ def render_dashboard():
     overspent_amount = max(0, total_spent_in_budgets - total_budget_limit)
     is_overspent = overspent_amount > 0
     
-    # Display using Streamlit columns - responsive
-    # Display using Consistent Cards
+    # Progress bar calculation (Done BEFORE cards to fix NameError)
+    percent_actual = (total_spent_in_budgets / total_budget_limit * 100) if total_budget_limit > 0 else 0
+
     # Display using Consistent Cards
     if is_overspent:
         bc1, bc2, bc3, bc4 = st.columns(4)
