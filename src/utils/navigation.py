@@ -158,7 +158,6 @@ def render_sidebar():
             # Display username
             username = st.session_state.get('username', "User")
             st.markdown(f"<p class='username-text' style='margin-left: 10px;'>👤 **{username}**</p>", unsafe_allow_html=True)
-            st.caption("🚀 Version 1.1.0 (UI Fixes Live)")
             st.markdown("---")
         else:
             st.markdown("<div style='height: 20px;'></div>", unsafe_allow_html=True)
