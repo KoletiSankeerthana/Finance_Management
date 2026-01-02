@@ -155,15 +155,7 @@ def render_ledger():
         }
     )
     
-
-    c1, c2 = st.columns(2)
-    with c1:
-        if st.button("⬅ Add Expense", key="led_nav_back", use_container_width=True):
-            st.session_state.page = "transactions"
-            st.rerun()
-    with c2:
-        if st.button("Analytics ➡", key="led_nav_next", type="primary", use_container_width=True):
-            st.session_state.page = "analytics"
-            st.rerun()
-            
+    from src.utils.navigation import render_bottom_nav
+    render_bottom_nav("ledger")
+    
     st.markdown("<br>", unsafe_allow_html=True)

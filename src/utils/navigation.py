@@ -3,12 +3,12 @@ from src.utils.constants import CATEGORY_ICONS, APP_TITLE, APP_SUBTITLE
 from src.auth.session import logout_user
 
 PAGES = {
-    "welcome": "Home",
     "dashboard": "Dashboard",
-    "transactions": "Expenses",
+    "transactions": "Add Expense",
+    "ledger": "Expenses History",
     "categories": "Categories",
-    "analytics": "Analytics",
     "budgets": "Budgets",
+    "analytics": "Analytics",
     "settings": "Settings"
 }
 
@@ -16,8 +16,11 @@ PAGE_ORDER = list(PAGES.keys())
 
 NAV_CONFIG = {
     "Dashboard": {"icon": "📊", "render": "render_dashboard", "import": "src.pages.dashboard"},
+    "Add Expense": {"icon": "➕", "render": "render_transactions", "import": "src.pages.transactions"},
+    "Expenses History": {"icon": "📄", "render": "render_ledger", "import": "src.pages.ledger"},
+    "Categories": {"icon": "🏷️", "render": "render_categories", "import": "src.pages.categories"},
+    "Budgets": {"icon": "💰", "render": "render_budgets", "import": "src.pages.budgets"},
     "Analytics": {"icon": "📈", "render": "render_analytics", "import": "src.pages.analytics"},
-    "Add Expense": {"icon": "📄", "render": "render_transactions", "import": "src.pages.transactions"},
     "Settings": {"icon": "⚙️", "render": "render_settings", "import": "src.pages.settings"}
 }
 
