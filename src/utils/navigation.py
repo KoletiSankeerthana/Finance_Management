@@ -15,12 +15,9 @@ PAGES = {
 PAGE_ORDER = list(PAGES.keys())
 
 NAV_CONFIG = {
-    "Home": {"icon": "🏠", "render": "render_intro", "import": "src.pages.intro"},
     "Dashboard": {"icon": "📊", "render": "render_dashboard", "import": "src.pages.dashboard"},
-    "Expenses": {"icon": "📄", "render": "render_transactions", "import": "src.pages.transactions"},
-    "Categories": {"icon": "🗂️", "render": "render_categories", "import": "src.pages.categories"},
     "Analytics": {"icon": "📈", "render": "render_analytics", "import": "src.pages.analytics"},
-    "Budgets": {"icon": "💰", "render": "render_budgets", "import": "src.pages.budgets"},
+    "Add Expense": {"icon": "📄", "render": "render_transactions", "import": "src.pages.transactions"},
     "Settings": {"icon": "⚙️", "render": "render_settings", "import": "src.pages.settings"}
 }
 
