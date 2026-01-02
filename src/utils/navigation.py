@@ -75,61 +75,31 @@ def render_sidebar():
         </style>
     """, unsafe_allow_html=True)
 
-    # --- HIDDEN TRIGGER PATTERN FOR GLOBAL TOGGLE ---
-    # This hidden button allows the JS hamburger to communicate with Python state reliably.
-    # It must be in the main page flow (not sidebar) to be always present.
-    with st.container():
-        # Unique key to ensure it doesn't conflict
-        if st.button("ProcessSidebarToggle", key="global_sidebar_trigger"):
-            st.session_state.sidebar_expanded = not expanded
-            st.rerun()
-            
-    # CSS to hide the trigger button but keep it effectively clickable by JS
+    # --- JAVASCRIPT PROXY PATTERN FOR GLOBAL TOGGLE ---
+    # The user wants ONLY the hamburger to be visible.
+    # We keep the "Internal Buttons" (« / ») to manage state, but HIDE them with CSS.
+    # The Hamburger then "clicks" them via JS.
+    
     st.markdown("""
         <style>
-        /* Hide the specific trigger button visually */
-        div[data-testid="stVerticalBlock"] button:has(div p:contains("ProcessSidebarToggle")) {
+        /* Hide the internal expand/collapse buttons visually */
+        div[data-testid="stSidebar"] button[kind="secondary"], 
+        div[data-testid="stSidebar"] button[kind="base"] {
+            /* We carefully only hide the arrow buttons if we can target them specifically. 
+               Since they use specific keys, we can look for their structure or just use the container class below.
+               Actually, we will wrap them in a container that we hide. */
+        }
+        
+        .hidden-toggle-container {
             display: none;
         }
-        /* Fallback for browsers not supporting :has or complex selectors */
-        </style>
         
-        <script>
-        // Ensure the button is hidden via JS as well to be safe
-        const triggerBtn = Array.from(window.parent.document.querySelectorAll('button')).find(b => b.innerText.includes("ProcessSidebarToggle"));
-        if(triggerBtn) {
-            triggerBtn.style.display = 'none';
-        }
-
-        function toggleSidebar() {
-            // Find the hidden trigger button by its text content
-            const buttons = Array.from(window.parent.document.querySelectorAll('button'));
-            const trigger = buttons.find(b => b.innerText.includes("ProcessSidebarToggle"));
-            
-            if (trigger) {
-                trigger.click();
-            } else {
-                // Fallback to native toggle if our custom trigger is missing
-                const headerBtn = window.parent.document.querySelector('button[kind="header"]');
-                if (headerBtn) headerBtn.click();
-            }
-        }
-        </script>
-        
-        <!-- The Floating Hamburger -->
-        <div class="custom-hamburger" onclick="toggleSidebar()" title="Toggle Sidebar">
-            <span style="font-size: 1.2rem; font-weight: bold;">☰</span>
-        </div>
-    """, unsafe_allow_html=True)
-    
-    # CSS for hamburger styling (Keep existing, just ensure z-index)
-    st.markdown("""
-        <style>
+        /* Custom Hamburger Styling (Robust Fixed Position) */
         .custom-hamburger {
             position: fixed;
             top: 20px;
             left: 20px;
-            z-index: 9999999; /* Max Z-Index */
+            z-index: 9999999;
             background-color: #0E1117;
             color: white;
             padding: 8px 12px;
@@ -146,24 +116,69 @@ def render_sidebar():
             background-color: #262730;
             transform: scale(1.05);
         }
-        .custom-hamburger:active {
-            transform: scale(0.95);
+        
+        /* Ensure sidebar top padding for the hamburger overlap */
+        section[data-testid="stSidebar"] > div {
+            padding-top: 60px;
         }
         </style>
+        
+        <script>
+        function toggleSidebar() {
+            // PROXY LOGIC: Find the hidden internal buttons and click them.
+            const buttons = Array.from(window.parent.document.querySelectorAll('button'));
+            
+            // 1. Try to find the "Collapse" («) or "Expand" (») buttons by their text
+            // Note: We wrapped them in a generic button call, Streamlit renders them as buttons with text.
+            let targetBtn = buttons.find(b => b.innerText.includes("«") || b.innerText.includes("»"));
+            
+            if (targetBtn) {
+                targetBtn.click();
+            } else {
+                // 2. Fallback: If for some reason internal buttons aren't found (e.g. mobile overlay),
+                // trigger Streamlit's native sidebar toggle.
+                const headerBtn = window.parent.document.querySelector('button[kind="header"]');
+                if (headerBtn) headerBtn.click();
+            }
+        }
+        </script>
+        
+        <div class="custom-hamburger" onclick="toggleSidebar()" title="Toggle Sidebar">
+            <span style="font-size: 1.2rem; font-weight: bold;">☰</span>
+        </div>
     """, unsafe_allow_html=True)
 
     with st.sidebar:
-        # Sidebar Toggle Optimization - Only show in expanded mode on desktop
-        if expanded:
-            toggle_cols = st.columns([1, 2, 1])
-            with toggle_cols[1]:
-                if st.button("«", key="sidebar_toggle_collapse", help="Collapse Sidebar", use_container_width=True):
+        # Internal State Management Buttons (HIDDEN via container class)
+        # These manage the actual python state.
+        with st.container():
+            # Inject CSS to hide this specific container content
+            st.markdown('<div class="hidden-toggle-container">', unsafe_allow_html=True)
+            if expanded:
+                 if st.button("«", key="sidebar_toggle_collapse"):
                     st.session_state.sidebar_expanded = False
                     st.rerun()
-        else:
-            if st.button("»", key="sidebar_toggle_expand", help="Expand Sidebar", use_container_width=True):
-                st.session_state.sidebar_expanded = True
-                st.rerun()
+            else:
+                 if st.button("»", key="sidebar_toggle_expand"):
+                    st.session_state.sidebar_expanded = True
+                    st.rerun()
+            st.markdown('</div>', unsafe_allow_html=True)
+            # Apply display:none to the container via more specific CSS if needed, 
+            # but usually the script above or inline style works best if Streamlit allowed it. 
+            # Since Streamlit Markdown implies HTML, we matched the div class above.
+            
+            # FORCE HIDE using direct styling injection for the buttons based on key/text check
+            st.markdown("""
+            <style>
+            /* Target buttons by their text content hack */
+            button:has(div p:contains("«")), button:has(div p:contains("»")) {
+                visibility: hidden;
+                position: absolute;
+                width: 0;
+                height: 0;
+            }
+            </style>
+            """, unsafe_allow_html=True)
 
         st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
 
