@@ -148,9 +148,15 @@ def render_sidebar():
 
         if expanded:
             st.markdown(f"""
-            <div style='padding: 0 0 15px 10px; text-align: left;'>
-                <p style='font-size:1.4rem; font-weight:bold; color:var(--primary); margin:0;'>{APP_TITLE}</p>
-                <p style='font-size: 0.7rem; color:var(--text-muted);'>{APP_SUBTITLE}</p>
+            <div style='padding: 0 0 15px 10px; text-align: left; min-width: 200px;'>
+                <p style='font-size:1.4rem; font-weight:bold; color:var(--primary); margin:0; 
+                          white-space: nowrap; overflow: hidden; text-overflow: ellipsis;'>
+                    {APP_TITLE}
+                </p>
+                <p style='font-size: 0.7rem; color:var(--text-muted); margin:0;
+                          white-space: nowrap; overflow: hidden; text-overflow: ellipsis;'>
+                    {APP_SUBTITLE}
+                </p>
             </div>
             """, unsafe_allow_html=True)
             # Display username

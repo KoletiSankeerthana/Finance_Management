@@ -55,27 +55,36 @@ def local_css():
     
     .app-header-title {
         font-weight: 700 !important;
-        font-size: clamp(1.8rem, 8vw, 3rem) !important; /* Optimized scaling */
-        white-space: nowrap !important;
+        font-size: clamp(1.4rem, 8vw, 3rem) !important; /* Smaller min size */
+        white-space: normal !important; /* Allow wrapping on small screens */
         text-transform: uppercase !important;
         text-align: center !important;
+        line-height: 1.2 !important; /* Better for wrapped text */
         background: linear-gradient(180deg, #ffffff 0%, #a4b0be 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         display: block;
         width: 100%;
         margin: 0 auto !important;
-        overflow: hidden;
-        text-overflow: ellipsis;
     }
 
     .app-header-subtitle {
         font-weight: 300 !important;
-        font-size: 1.2rem !important;
+        font-size: 1.1rem !important; /* Slightly smaller for better fit */
         text-align: center !important;
         opacity: 0.7;
-        letter-spacing: 2px;
-        margin-top: -10px !important;
+        letter-spacing: 1.5px; /* Reduced for better fit */
+        margin-top: -5px !important;
+    }
+
+    /* Mobile-Specific Tweaks */
+    @media (max-width: 480px) {
+        .app-header-title {
+            font-size: 1.6rem !important;
+        }
+        .header-container {
+            padding: 20px 0 !important;
+        }
     }
     
     /* Input & Elements */
@@ -162,10 +171,10 @@ def login_page():
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
         st.markdown(f"""
-        <div style='text-align: center; padding: 40px 0;'>
+        <div class='header-container' style='text-align: center; padding: 40px 0;'>
             <h1 class='app-header-title'>{APP_TITLE}</h1>
             <p class='app-header-subtitle'>{APP_SUBTITLE}</p>
-            <div style='width: 60px; height: 3px; background: var(--primary); margin: 20px auto; border-radius: 2px;'></div>
+            <div style='width: 40px; height: 2px; background: var(--primary); margin: 15px auto; border-radius: 2px;'></div>
         </div>
         """, unsafe_allow_html=True)
         
