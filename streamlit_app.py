@@ -90,7 +90,7 @@ def local_css():
     
     /* Sidebar */
     .stSidebar {
-        background-color: #0d1117 !important; # Darker sidebar
+        background-color: #0d1117 !important;
         border-right: 1px solid var(--border);
     }
     
@@ -280,110 +280,16 @@ def login_page():
                     st.rerun()
 
 # --- Main App Logic ---
-# ROUTING SYSTEM (V42: Persistent Sidebar + Toggle)
-NAV_CONFIG = {
-    "Home": {"icon": "🏠", "render": "render_intro", "import": "src.pages.intro"},
-    "Dashboard": {"icon": "📊", "render": "render_dashboard", "import": "src.pages.dashboard"},
-    "Expenses": {"icon": "📄", "render": "render_transactions", "import": "src.pages.transactions"},
-    "Categories": {"icon": "🗂️", "render": "render_categories", "import": "src.pages.categories"},
-    "Analytics": {"icon": "📈", "render": "render_analytics", "import": "src.pages.analytics"},
-    "Budgets": {"icon": "💰", "render": "render_budgets", "import": "src.pages.budgets"},
-    "Settings": {"icon": "⚙️", "render": "render_settings", "import": "src.pages.settings"}
-}
+from src.utils.navigation import render_sidebar, NAV_CONFIG
 
 if not st.session_state.authenticated:
     login_page()
 else:
-    # Sidebar Toggle & Styling
-    expanded = st.session_state.sidebar_expanded
-    
-    # CSS for Sidebar Width control
-    sidebar_width = "280px" if expanded else "80px"
-    st.markdown(f"""
-        <style>
-        [data-testid="stSidebar"] {{
-            min-width: {sidebar_width} !important;
-            max-width: {sidebar_width} !important;
-            transition: all 0.3s ease-in-out;
-        }}
-        [data-testid="stSidebarNav"] {{ display: none; }} /* Hide default nav */
-        
-        /* Prevent vertical wrapping on small sidebars */
-        .stButton button {{ white-space: nowrap !important; overflow: hidden !important; }}
-        
-        /* Hide default Streamlit sidebar toggle to use our own floating one */
-        button[kind="header"] {{ display: none !important; }}
-        </style>
-    """, unsafe_allow_html=True)
-
-    # Floating Toggle for accessibility when sidebar is collapsed
-    if not expanded:
-        st.markdown("""
-            <div class="custom-hamburger" onclick="window.parent.document.querySelectorAll('button').forEach(btn => { if(btn.innerText.includes('☰')) btn.click(); })">
-                <span style="font-size: 1.2rem;">☰</span>
-            </div>
-        """, unsafe_allow_html=True)
-        # Hidden trigger button
-        if st.button("☰", key="mobile_toggle_trigger"):
-            st.session_state.sidebar_expanded = True
-            st.rerun()
-
-    with st.sidebar:
-        # Sidebar Toggle Optimization
-        if expanded:
-            toggle_cols = st.columns([1, 2, 1])
-            with toggle_cols[1]:
-                if st.button("«", key="sidebar_toggle_collapse", help="Collapse Sidebar", use_container_width=True):
-                    st.session_state.sidebar_expanded = False
-                    st.rerun()
-        else:
-            # Full width button for narrow sidebar
-            if st.button("»", key="sidebar_toggle_expand", help="Expand Sidebar", use_container_width=True):
-                st.session_state.sidebar_expanded = True
-                st.rerun()
-
-        st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
-
-        if expanded:
-            st.markdown(f"""
-            <div style='padding: 0 0 15px 0; text-align: center;'>
-                <p style='font-size:1.4rem; font-weight:bold; color:var(--primary); margin:0;'>{APP_TITLE}</p>
-                <p style='font-size: 0.7rem; color:var(--text-muted);'>{APP_SUBTITLE}</p>
-            </div>
-            """, unsafe_allow_html=True)
-            st.markdown(f"👤 **{st.session_state.email}**")
-            st.markdown("---")
-        else:
-            st.markdown("<div style='height: 20px;'></div>", unsafe_allow_html=True)
-
-        # Navigation Menu
-        for label, config in NAV_CONFIG.items():
-            is_active = st.session_state.current_page == label
-            
-            # Robust icon handling (in case user removed some)
-            icon = config.get('icon', '')
-            if expanded:
-                btn_label = f"{icon} {label}" if icon else label
-            else:
-                btn_label = icon if icon else label[:1] # Show first letter if icon missing
-            
-            if st.button(
-                btn_label, 
-                key=f"nav_{label}", 
-                use_container_width=True,
-                type="primary" if is_active else "secondary"
-            ):
-                st.session_state.current_page = label
-                st.rerun()
-
-        st.markdown("---")
-        # Fix logout button wrapping: only show icon when collapsed
-        logout_btn_label = "🔓 Logout" if expanded else "🔓"
-        if st.button(logout_btn_label, use_container_width=True, key="sidebar_logout"):
-            logout_user()
+    # Render centralized responsive sidebar
+    render_sidebar()
 
     # Route Rendering
-    curr_page_label = st.session_state.current_page
+    curr_page_label = st.session_state.get('current_page', 'Dashboard')
     if curr_page_label not in NAV_CONFIG:
         curr_page_label = "Dashboard"
         st.session_state.current_page = "Dashboard"
