@@ -153,8 +153,8 @@ def render_sidebar():
                 <p style='font-size: 0.7rem; color:var(--text-muted);'>{APP_SUBTITLE}</p>
             </div>
             """, unsafe_allow_html=True)
-            # Display username (derived from email)
-            username = st.session_state.email.split('@')[0] if st.session_state.email else "User"
+            # Display username
+            username = st.session_state.get('username', "User")
             st.markdown(f"👤 **{username}**")
             st.markdown("---")
         else:

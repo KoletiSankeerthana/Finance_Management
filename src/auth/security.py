@@ -1,5 +1,4 @@
-import bcrypt
-from src.database.crud import get_user_by_email as db_get_user_email, get_user_by_username as db_get_user_username, update_password
+from src.database.crud import get_user_by_username as db_get_user_username, update_password
 
 def hash_password(password: str) -> str:
     salt = bcrypt.gensalt()
@@ -12,9 +11,6 @@ def verify_password(password: str, hashed: str) -> bool:
         return bcrypt.checkpw(password.encode('utf-8'), hashed.encode('utf-8'))
     except (ValueError, AttributeError):
         return False
-
-def get_user_by_email(email: str):
-    return db_get_user_email(email)
 
 def get_user_by_username(username: str):
     return db_get_user_username(username)

@@ -1,6 +1,6 @@
 import streamlit as st
 import time
-from src.auth.security import get_user_by_email, change_password
+from src.auth.security import change_password
 from src.database.crud import reset_user_data, delete_user_account
 from src.auth.session import logout_user
 
@@ -10,7 +10,7 @@ def render_settings():
         return
 
     user_id = st.session_state.user_id
-    username = st.session_state.get('username', email.split('@')[0] if email else "User")
+    username = st.session_state.get('username', "User")
     
     st.markdown(f"""
     <div style="margin-bottom: 20px; text-align: center;">
@@ -22,7 +22,6 @@ def render_settings():
     # --- 1. Account Info ---
     st.markdown("### 👤 Account")
     st.text_input("Username", value=username, disabled=True)
-    st.text_input("Email", value=email, disabled=True, help="Used for password recovery")
     
     # --- 2. Preferences ---
     st.markdown("### ⚙️ Preferences")

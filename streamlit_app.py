@@ -169,7 +169,7 @@ def login_page():
         </div>
         """, unsafe_allow_html=True)
         
-        tab1, tab2, tab3 = st.tabs(["Login", "Register", "Forgot Password"])
+        tab1, tab2 = st.tabs(["Login", "Register"])
         
         with tab1:
             with st.form("login_form", clear_on_submit=False):
@@ -185,12 +185,11 @@ def login_page():
                         user_dict = dict(user) if hasattr(user, 'keys') else {
                             'id': user[0],
                             'username': user[1],
-                            'email': user[2],
                             'password_hash': user[3]
                         }
                         
                         if verify_password(password, user_dict['password_hash']):
-                            login_user(user_dict['id'], user_dict['username'], user_dict['email'])
+                            login_user(user_dict['id'], user_dict['username'])
                         else:
                             st.error("Invalid username or password.")
                     else:
@@ -199,74 +198,32 @@ def login_page():
         with tab2:
             with st.form("register_form"):
                 new_username = st.text_input("Username", help="Choose a unique username")
-                new_email = st.text_input("Email Address", help="For password recovery")
                 new_password = st.text_input("Password", type="password")
                 confirm_password = st.text_input("Confirm Password", type="password")
                 submit = st.form_submit_button("Create Account", use_container_width=True)
                 
                 if submit:
-                    if not new_username or not new_email or not new_password:
+                    if not new_username or not new_password:
                         st.error("All fields are required")
                     elif len(new_username) < 3:
                         st.error("Username must be at least 3 characters")
-                    elif "@" not in new_email or "." not in new_email:
-                        st.error("Please provide a valid email address")
                     elif new_password != confirm_password:
                         st.error("Passwords do not match")
                     elif len(new_password) < 8:
                         st.error("Password must be at least 8 characters.")
-                    elif get_user_by_email(new_email):
-                        st.error("Email already registered. Please use a different email.")
                     else:
                         from src.auth.security import get_user_by_username
                         if get_user_by_username(new_username):
                             st.error("Username already taken. Please choose another.")
                         else:
                             pwd_hash = hash_password(new_password)
-                            user_id = create_user(new_username, new_email, pwd_hash)
+                            user_id = create_user(new_username, pwd_hash)
                             if user_id:
                                 st.success("Account created successfully! Please login.")
                             else:
                                 st.error("Failed to create account")
                             
-        with tab3:
-            st.markdown("### 🔑 Reset Password (Demo Mode)")
-            
-            if not st.session_state.get("reset_email"):
-                st.info("Enter your registered email to generate a demo OTP.")
-                with st.form("otp_generate_form"):
-                    email_input = st.text_input("Registered Email Address")
-                    generate_btn = st.form_submit_button("Generate OTP", use_container_width=True)
-                    
-                    if generate_btn:
-                        user = get_user_by_email(email_input)
-                        if user:
-                            otp = str(random.randint(100000, 999999))
-                            st.session_state.reset_otp = otp
-                            st.session_state.reset_email = email_input
-                            st.session_state.otp_expiry = datetime.now() + timedelta(minutes=5)
-                            st.session_state.otp_verified = False
-                            st.rerun()
-                        else:
-                            st.error("No account found with this email.")
-            
-            elif st.session_state.get("reset_email") and not st.session_state.get("otp_verified"):
-                st.warning(f"🔧 **DEV MODE OTP: {st.session_state.reset_otp}**")
-                
-                with st.form("otp_verify_form"):
-                    input_otp = st.text_input("Enter 6-digit OTP", placeholder="123456")
-                    verify_btn = st.form_submit_button("Verify OTP", use_container_width=True)
-                    
-                    if verify_btn:
-                        if datetime.now() > st.session_state.otp_expiry:
-                            st.error("OTP expired.")
-                            st.session_state.reset_email = None
-                        elif input_otp == st.session_state.reset_otp:
-                            st.session_state.otp_verified = True
-                            st.success("OTP Verified!")
-                            st.rerun()
-                        else:
-                            st.error("Invalid OTP.")
+        # Forgot Password Tab Removed as per user request
                 
                 if st.button("Cancel & Restart"):
                     st.session_state.reset_email = None
