@@ -43,7 +43,7 @@ def render_sidebar():
         
         /* Prevent vertical wrapping on small sidebars */
         /* Prevent vertical wrapping on small sidebars - COMPACT STYLE */
-        .stButton button { 
+        .stButton button {{ 
             white-space: nowrap !important; 
             overflow: hidden !important; 
             text-align: left !important;
@@ -51,16 +51,16 @@ def render_sidebar():
             height: 42px !important;       /* Fixed smaller height */
             min-height: 42px !important;
             margin-bottom: 4px !important; /* Tighter spacing */
-        }
+        }}
         
         /* Sidebar item text stays in one line */
-        div[data-testid="stSidebar"] button div p {
+        div[data-testid="stSidebar"] button div p {{
             white-space: nowrap !important;
             overflow: hidden !important;
             text-overflow: ellipsis !important;
             display: block !important;
             font-size: 0.95rem !important; /* Slightly smaller font for neatness */
-        }
+        }}
         
         /* Hide default Streamlit sidebar toggle */
         button[kind="header"] {{ display: none !important; }}
