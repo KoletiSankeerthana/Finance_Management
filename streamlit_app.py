@@ -180,11 +180,19 @@ def login_page():
                 if submit:
                     from src.auth.security import get_user_by_username
                     user = get_user_by_username(username)
-                    if user and verify_password(password, user['password_hash'] if isinstance(user, dict) else user[3]):
-                        user_id = user['id'] if isinstance(user, dict) else user[0]
-                        user_username = user['username'] if isinstance(user, dict) else user[1]
-                        user_email = user['email'] if isinstance(user, dict) else user[2]
-                        login_user(user_id, user_username, user_email)
+                    if user:
+                        # Convert SQLite Row to dict for easier access
+                        user_dict = dict(user) if hasattr(user, 'keys') else {
+                            'id': user[0],
+                            'username': user[1],
+                            'email': user[2],
+                            'password_hash': user[3]
+                        }
+                        
+                        if verify_password(password, user_dict['password_hash']):
+                            login_user(user_dict['id'], user_dict['username'], user_dict['email'])
+                        else:
+                            st.error("Invalid username or password.")
                     else:
                         st.error("Invalid username or password.")
         
