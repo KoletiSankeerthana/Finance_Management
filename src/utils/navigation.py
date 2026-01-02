@@ -57,43 +57,31 @@ def render_sidebar():
             font-size: 0.9rem !important;
         }}
 
-        /* Responsive Breakpoints */
+        /* Responsive Breakpoints: Single Clean Block */
         @media (max-width: 1024px) {{
-            /* Desktop/Tablet transition: Force collapse to icons visually */
+            /* Tablet transition: Force collapse to icons visually */
             [data-testid="stSidebar"] {{
                 min-width: 80px !important;
                 max-width: 80px !important;
             }}
+            
             /* Show ONLY icon: set a narrow width and center it */
             [data-testid="stSidebar"] button div p {{
-                width: 35px !important; 
+                width: 32px !important; 
                 overflow: hidden !important;
                 text-align: center !important;
                 margin: 0 auto !important;
                 font-size: 1.25rem !important;
             }}
+            
             /* Hide title and username text on small screens */
-            .sidebar-text-container, .username-text {{
+            .sidebar-text-container, .username-text, .nav-text {{
                 display: none !important;
             }}
         }}
         
         /* Hide default Streamlit sidebar toggle */
         button[kind="header"] {{ display: none !important; }}
-
-        /* Responsive Breakpoints */
-        @media (max-width: 1024px) {{
-            /* Tablet: Force collapse to icons */
-            [data-testid="stSidebar"] {{
-                min-width: 80px !important;
-                max-width: 80px !important;
-            }}
-            [data-testid="stSidebar"] .nav-text {{ display: none !important; }}
-        }}
-
-        @media (max-width: 768px) {{
-            /* Handled by Streamlit mobile overlay */
-        }}
         </style>
         
         <!-- REMOVED CUSTOM HAMBURGER ("3 lines") and HIDDEN NATIVE CHEVRON ("<") AS REQUESTED -->
