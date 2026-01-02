@@ -40,17 +40,36 @@ def render_sidebar():
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             background-color: #050505 !important;
             border-right: 1px solid rgba(255, 255, 255, 0.05);
-            overflow: hidden !important;
+            overflow: visible !important; /* Allow absolute toggle to be seen clearly */
         }}
         [data-testid="stSidebarNav"] {{ display: none; }} /* Hide default nav */
         
-        /* When collapsed, hide EVERYTHING except our toggle button */
-        {" .sidebar-text-container, .username-text, div[data-testid='stSidebar'] p, div[data-testid='stSidebar'] button, hr { display: none !important; } " if not expanded else ""}
+        /* When collapsed, hide EVERYTHING except our toggle button wrapper */
+        {f" div[data-testid='stSidebar'] .sidebar-text-container, div[data-testid='stSidebar'] .username-text, div[data-testid='stSidebar'] hr, div[data-testid='stSidebar'] .stButton:not(:has(.sidebar-toggle-btn)) {{ display: none !important; }} " if not expanded else ""}
         
-        /* Re-show ONLY our custom toggle buttons even when other buttons are hidden */
-        .sidebar-toggle-btn button {{ 
-            display: flex !important; 
+        /* Ensure the toggle button itself is always visible and positioned correctly */
+        .sidebar-toggle-btn {{
+            position: absolute !important;
+            top: 10px !important;
+            z-index: 1000 !important;
+            width: 100% !important;
+            display: flex !important;
+            justify-content: {"flex-end" if expanded else "center"} !important;
+            padding-right: {"20px" if expanded else "0"} !important;
+        }}
+
+        .sidebar-toggle-btn button {{
             background: transparent !important;
+            border: none !important;
+            color: #888 !important;
+            font-size: 1.5rem !important;
+            padding: 0 !important;
+            min-height: 0 !important;
+            width: 40px !important;
+            height: 40px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
         }}
 
         [data-testid="stSidebar"] * {{
@@ -119,17 +138,17 @@ def render_sidebar():
         </style>
         """, unsafe_allow_html=True)
 
-    # 1. Sidebar Toggle Button (Primary Control)
-    st.markdown('<div class="sidebar-toggle-btn">', unsafe_allow_html=True)
-    if expanded:
-        if st.button("«", key="sidebar_toggle_collapse"):
-            st.session_state.sidebar_expanded = False
-            st.rerun()
-    else:
-        if st.button("»", key="sidebar_toggle_expand"):
-            st.session_state.sidebar_expanded = True
-            st.rerun()
-    st.markdown('</div>', unsafe_allow_html=True)
+        # 1. Sidebar Toggle Button (Primary Control)
+        st.markdown('<div class="sidebar-toggle-btn">', unsafe_allow_html=True)
+        if expanded:
+            if st.button("«", key="sidebar_toggle_collapse"):
+                st.session_state.sidebar_expanded = False
+                st.rerun()
+        else:
+            if st.button("»", key="sidebar_toggle_expand"):
+                st.session_state.sidebar_expanded = True
+                st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
 
         st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
 
