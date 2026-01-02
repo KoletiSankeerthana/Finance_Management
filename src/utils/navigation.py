@@ -78,6 +78,7 @@ def render_sidebar():
     # Floating Toggle for accessibility when sidebar is collapsed OR on mobile
     # Streamlit's [data-testid="stSidebar"] can be hidden, but we want our toggle always visible
     st.markdown("""
+        <style>
         /* Custom Hamburger Styling */
         .custom-hamburger {
             position: fixed;
@@ -105,22 +106,30 @@ def render_sidebar():
         function toggleSidebar() {
             const buttons = window.parent.document.querySelectorAll('button');
             let clicked = false;
-            // 1. Try finding my custom inner toggle buttons
+            // 1. Try finding my custom inner toggle buttons (Expand/Collapse arrows)
             buttons.forEach(btn => {
-                if ((btn.innerText.includes('»') || btn.innerText.includes('«')) && !clicked) {
+                // Check inner text for arrows or specific help text
+                const text = btn.innerText || "";
+                const help = btn.getAttribute("title") || "";
+                
+                if ((text.includes('»') || text.includes('«') || help.includes('Sidebar')) && !clicked) {
                     btn.click();
                     clicked = true;
                 }
             });
-            // 2. Fallback: If no arrows found, try Streamlit's native toggle if visible
+            
+            // 2. Fallback: Toggle Streamlit's native header button if my custom ones aren't found
             if (!clicked) {
                 const headerBtn = window.parent.document.querySelector('button[kind="header"]');
-                if (headerBtn) headerBtn.click();
+                if (headerBtn) {
+                    headerBtn.click();
+                    clicked = true;
+                }
             }
         }
         </script>
         
-        <div class="custom-hamburger" onclick="toggleSidebar()">
+        <div class="custom-hamburger" onclick="toggleSidebar()" title="Toggle Sidebar">
             <span style="font-size: 1.2rem; font-weight: bold;">☰</span>
         </div>
     """, unsafe_allow_html=True)
