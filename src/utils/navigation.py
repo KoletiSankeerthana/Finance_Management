@@ -151,39 +151,56 @@ def render_sidebar():
     with st.sidebar:
         # Internal State Management Buttons (HIDDEN via container class)
         # These manage the actual python state.
-        with st.container():
-            # Inject CSS to hide this specific container content
-            st.markdown('<div class="hidden-toggle-container">', unsafe_allow_html=True)
-            # Force HIDE the internal proxy buttons using strict CSS targeting by title attribute
+            # Force HIDE the internal proxy buttons using JavaScript (More robust than CSS :has)
             st.markdown("""
-            <style>
-            /* Hide the native Streamlit sidebar close button (The '<' chevron) */
-            [data-testid="stSidebar"] button[kind="header"] {
-                display: none !important;
+            <script>
+            function hideArrows() {
+                const doc = window.parent.document;
+                const buttons = doc.querySelectorAll('button');
+                
+                buttons.forEach(btn => {
+                    // 1. Hide Native Sidebar Close Button (Chevron)
+                    if (btn.getAttribute("kind") === "header") {
+                        btn.style.display = 'none';
+                    }
+                    
+                    // 2. Hide our Internal Proxy Buttons (« and »)
+                    // We check innerText carefully
+                    if (btn.innerText.includes("«") || btn.innerText.includes("»")) {
+                        btn.style.display = 'none';
+                        // Ensure they are still clickable by JS but invisible layout-wise
+                        // Actually display:none might make them unclickable? 
+                        // No, click() works on display:none elements in most browsers, 
+                        // but visibility:hidden is safer for clickability if display:none prevents interaction event dispatch.
+                        // Let's use visibility:hidden + absolute positioning to remove layout space.
+                        btn.style.visibility = 'hidden';
+                        btn.style.position = 'absolute';
+                        btn.style.width = '0px';
+                        btn.style.height = '0px';
+                    }
+                });
             }
             
-            /* Hide our custom proxy buttons (The Green '«' / '»') */
-            /* We use visibility:hidden so they stay in DOM for JS to click */
-            button[title="Collapse Sidebar"], button[title="Expand Sidebar"] {
-                visibility: hidden !important;
-                position: absolute !important;
-                width: 1px !important;
-                height: 1px !important;
-                padding: 0 !important;
-                margin: -1px !important;
-                overflow: hidden !important;
-                clip: rect(0,0,0,0) !important;
-                border: 0 !important;
+            // Run immediately and on frequent intervals to catch re-renders
+            hideArrows();
+            setTimeout(hideArrows, 100);
+            setTimeout(hideArrows, 500);
+            setInterval(hideArrows, 1000); // Polling ensures it stays hidden if Streamlit re-mounts
+            </script>
+            <style>
+            /* Fallback CSS for native header */
+            [data-testid="stSidebar"] button[kind="header"] {
+                display: none !important;
             }
             </style>
             """, unsafe_allow_html=True)
             
             if expanded:
-                 if st.button("«", key="sidebar_toggle_collapse", help="Collapse Sidebar"):
+                 if st.button("«", key="sidebar_toggle_collapse"):
                     st.session_state.sidebar_expanded = False
                     st.rerun()
             else:
-                 if st.button("»", key="sidebar_toggle_expand", help="Expand Sidebar"):
+                 if st.button("»", key="sidebar_toggle_expand"):
                     st.session_state.sidebar_expanded = True
                     st.rerun()
             st.markdown('</div>', unsafe_allow_html=True)
