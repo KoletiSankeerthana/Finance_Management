@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 from src.auth.session import init_session_state, login_user, logout_user
 from src.auth.security import hash_password, verify_password
 from src.database.crud import (
-    create_user, get_user_by_email, update_password_by_email
+    create_user
 )
 from src.database.schema import init_db
 from src.utils.constants import APP_TITLE, APP_SUBTITLE, PRIMARY_COLOR
