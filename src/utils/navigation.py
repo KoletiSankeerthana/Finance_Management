@@ -78,13 +78,50 @@ def render_sidebar():
     # Floating Toggle for accessibility when sidebar is collapsed OR on mobile
     # Streamlit's [data-testid="stSidebar"] can be hidden, but we want our toggle always visible
     st.markdown("""
-        <style>
+        /* Custom Hamburger Styling */
         .custom-hamburger {
-            display: flex !important; /* Always show our custom toggle */
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 999999;
+            background-color: #0E1117;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            border: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            align-items: center;
+            justify_content: center;
+            transition: background-color 0.3s;
+        }
+        .custom-hamburger:hover {
+            background-color: #262730;
         }
         </style>
-        <div class="custom-hamburger" onclick="window.parent.document.querySelectorAll('button').forEach(btn => { if(btn.innerText.includes('»') || btn.innerText.includes('«')) btn.click(); })">
-            <span style="font-size: 1.2rem;">☰</span>
+        
+        <script>
+        function toggleSidebar() {
+            const buttons = window.parent.document.querySelectorAll('button');
+            let clicked = false;
+            // 1. Try finding my custom inner toggle buttons
+            buttons.forEach(btn => {
+                if ((btn.innerText.includes('»') || btn.innerText.includes('«')) && !clicked) {
+                    btn.click();
+                    clicked = true;
+                }
+            });
+            // 2. Fallback: If no arrows found, try Streamlit's native toggle if visible
+            if (!clicked) {
+                const headerBtn = window.parent.document.querySelector('button[kind="header"]');
+                if (headerBtn) headerBtn.click();
+            }
+        }
+        </script>
+        
+        <div class="custom-hamburger" onclick="toggleSidebar()">
+            <span style="font-size: 1.2rem; font-weight: bold;">☰</span>
         </div>
     """, unsafe_allow_html=True)
 
