@@ -100,7 +100,12 @@ def render_dashboard():
     
     # Display using Streamlit columns - responsive
     # Display using Consistent Cards
-    bc1, bc2, bc3, bc4 = st.columns(4) if is_overspent else st.columns(3)
+    # Display using Consistent Cards
+    if is_overspent:
+        bc1, bc2, bc3, bc4 = st.columns(4)
+    else:
+        bc1, bc2, bc3 = st.columns(3)
+        bc4 = None
     
     with bc1:
         st.markdown(card_html("TOTAL LIMIT", "ALL CATEGORIES", format_currency(total_budget_limit)), unsafe_allow_html=True)
@@ -109,7 +114,7 @@ def render_dashboard():
     with bc3:
         st.markdown(card_html("REMAINING", "Available Balance", format_currency(remaining_budget)), unsafe_allow_html=True)
         
-    if is_overspent:
+    if is_overspent and bc4:
         with bc4:
              st.markdown(card_html("OVERSPENT", "Exceeded Limit", format_currency(overspent_amount)), unsafe_allow_html=True)
 
