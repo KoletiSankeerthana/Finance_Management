@@ -64,9 +64,13 @@ def render_sidebar():
                 min-width: 80px !important;
                 max-width: 80px !important;
             }}
-            /* Hide any text label inside buttons on small screens */
+            /* Show ONLY icon: set a narrow width and center it */
             [data-testid="stSidebar"] button div p {{
-                display: none !important;
+                width: 35px !important; 
+                overflow: hidden !important;
+                text-align: center !important;
+                margin: 0 auto !important;
+                font-size: 1.25rem !important;
             }}
             /* Hide title and username text on small screens */
             .sidebar-text-container, .username-text {{
