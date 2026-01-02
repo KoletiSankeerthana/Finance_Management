@@ -5,7 +5,6 @@ from src.auth.session import logout_user
 PAGES = {
     "dashboard": "Dashboard",
     "transactions": "Add Expense",
-    "ledger": "Expenses History",
     "categories": "Categories",
     "budgets": "Budgets",
     "analytics": "Analytics",
@@ -17,7 +16,6 @@ PAGE_ORDER = list(PAGES.keys())
 NAV_CONFIG = {
     "Dashboard": {"icon": "📊", "render": "render_dashboard", "import": "src.pages.dashboard"},
     "Add Expense": {"icon": "➕", "render": "render_transactions", "import": "src.pages.transactions"},
-    "Expenses History": {"icon": "📄", "render": "render_ledger", "import": "src.pages.ledger"},
     "Categories": {"icon": "🏷️", "render": "render_categories", "import": "src.pages.categories"},
     "Budgets": {"icon": "💰", "render": "render_budgets", "import": "src.pages.budgets"},
     "Analytics": {"icon": "📈", "render": "render_analytics", "import": "src.pages.analytics"},
@@ -76,79 +74,10 @@ def render_sidebar():
             /* Handled by Streamlit mobile overlay */
         }}
         </style>
-    """, unsafe_allow_html=True)
-
-    # --- JAVASCRIPT PROXY PATTERN FOR GLOBAL TOGGLE ---
-    # The user wants ONLY the hamburger to be visible.
-    # We keep the "Internal Buttons" (« / ») to manage state, but HIDE them with CSS.
-    # The Hamburger then "clicks" them via JS.
-    
-    st.markdown("""
-        <style>
-        /* Hide the internal expand/collapse buttons visually */
-        div[data-testid="stSidebar"] button[kind="secondary"], 
-        div[data-testid="stSidebar"] button[kind="base"] {
-            /* We carefully only hide the arrow buttons if we can target them specifically. 
-               Since they use specific keys, we can look for their structure or just use the container class below.
-               Actually, we will wrap them in a container that we hide. */
-        }
         
-        .hidden-toggle-container {
-            display: none;
-        }
+        <!-- REMOVED CUSTOM HAMBURGER ("3 lines") and HIDDEN NATIVE CHEVRON ("<") AS REQUESTED -->
+        <!-- The sidebar will now rely on its expanded state and window width -->
         
-        /* Custom Hamburger Styling (Robust Fixed Position) */
-        .custom-hamburger {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            z-index: 9999999;
-            background-color: #0E1117;
-            color: white;
-            padding: 8px 12px;
-            border-radius: 8px;
-            cursor: pointer;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-            border: 1px solid rgba(255,255,255,0.1);
-            display: flex;
-            align-items: center;
-            justify_content: center;
-            transition: all 0.2s ease;
-        }
-        .custom-hamburger:hover {
-            background-color: #262730;
-            transform: scale(1.05);
-        }
-        
-        /* Ensure sidebar top padding for the hamburger overlap */
-        section[data-testid="stSidebar"] > div {
-            padding-top: 60px;
-        }
-        </style>
-        
-        <script>
-        function toggleSidebar() {
-            // PROXY LOGIC: Find the hidden internal buttons and click them.
-            const buttons = Array.from(window.parent.document.querySelectorAll('button'));
-            
-            // 1. Try to find the "Collapse" («) or "Expand" (») buttons by their text
-            // Note: We wrapped them in a generic button call, Streamlit renders them as buttons with text.
-            let targetBtn = buttons.find(b => b.innerText.includes("«") || b.innerText.includes("»"));
-            
-            if (targetBtn) {
-                targetBtn.click();
-            } else {
-                // 2. Fallback: If for some reason internal buttons aren't found (e.g. mobile overlay),
-                // trigger Streamlit's native sidebar toggle.
-                const headerBtn = window.parent.document.querySelector('button[kind="header"]');
-                if (headerBtn) headerBtn.click();
-            }
-        }
-        </script>
-        
-        <div class="custom-hamburger" onclick="toggleSidebar()" title="Toggle Sidebar">
-            <span style="font-size: 1.2rem; font-weight: bold;">☰</span>
-        </div>
     """, unsafe_allow_html=True)
 
     with st.sidebar:
