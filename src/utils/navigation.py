@@ -1,3 +1,4 @@
+from datetime import datetime
 import streamlit as st
 from src.utils.constants import CATEGORY_ICONS, APP_TITLE, APP_SUBTITLE
 from src.auth.session import logout_user
@@ -34,14 +35,21 @@ def render_sidebar():
     sidebar_width = "280px" if expanded else "60px"
     st.markdown(f"""
         <style>
+        /* Mobile-First: Dynamic Width */
+        @media (min-width: 768px) {{
+            [data-testid="stSidebar"] {{
+                min-width: {sidebar_width} !important;
+                max-width: {sidebar_width} !important;
+                transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            }}
+        }}
+        
         [data-testid="stSidebar"] {{
-            min-width: {sidebar_width} !important;
-            max-width: {sidebar_width} !important;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             background-color: #050505 !important;
             border-right: 1px solid rgba(255, 255, 255, 0.05);
             overflow: visible !important;
         }}
+        
         [data-testid="stSidebarNav"] {{ display: none; }} /* Hide default nav */
         
         /* Persistent Toggle Button Styling */
@@ -73,8 +81,10 @@ def render_sidebar():
             border-radius: 8px !important;
         }}
 
-        /* Hide content when collapsed */
-        {f" .sidebar-text-container, .username-text, hr, [data-testid='stSidebar'] .stButton:not(:has(.sidebar-toggle-btn)) {{ opacity: 0 !important; pointer-events: none !important; }} " if not expanded else ""}
+        /* Hide content when collapsed (Desktop only) */
+        @media (min-width: 768px) {{
+            {f" .sidebar-text-container, .username-text, hr, [data-testid='stSidebar'] .stButton:not(:has(.sidebar-toggle-btn)) {{ opacity: 0 !important; pointer-events: none !important; }} " if not expanded else ""}
+        }}
         
         /* Prevent character stacking */
         [data-testid="stSidebar"] * {{
@@ -117,6 +127,9 @@ def render_sidebar():
         st.markdown('</div>', unsafe_allow_html=True)
 
         st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
+        # Final Sync Marker
+        st.caption(f"🔄 Last Sync: {datetime.now().strftime('%H:%M:%S')}")
+        st.caption("🚀 Final Mobile-Ready Build Live")
 
         if expanded:
             st.markdown(f"""
