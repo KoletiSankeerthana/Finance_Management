@@ -26,9 +26,10 @@ def init_session_state():
     if "otp_verified" not in st.session_state:
         st.session_state.otp_verified = False
 
-def login_user(user_id, email):
+def login_user(user_id, username, email):
     st.session_state.authenticated = True
     st.session_state.user_id = user_id
+    st.session_state.username = username
     st.session_state.email = email
     st.rerun()
 

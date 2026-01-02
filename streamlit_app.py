@@ -173,27 +173,34 @@ def login_page():
         
         with tab1:
             with st.form("login_form", clear_on_submit=False):
-                email = st.text_input("Email Address")
+                username = st.text_input("Username")
                 password = st.text_input("Password", type="password")
                 submit = st.form_submit_button("Sign In", use_container_width=True)
                 
                 if submit:
-                    user = get_user_by_email(email)
-                    if user and verify_password(password, user['password_hash']):
-                        login_user(user['id'], user['email'])
+                    from src.auth.security import get_user_by_username
+                    user = get_user_by_username(username)
+                    if user and verify_password(password, user['password_hash'] if isinstance(user, dict) else user[3]):
+                        user_id = user['id'] if isinstance(user, dict) else user[0]
+                        user_username = user['username'] if isinstance(user, dict) else user[1]
+                        user_email = user['email'] if isinstance(user, dict) else user[2]
+                        login_user(user_id, user_username, user_email)
                     else:
-                        st.error("Invalid Email or password.")
+                        st.error("Invalid username or password.")
         
         with tab2:
             with st.form("register_form"):
-                new_email = st.text_input("Email Address")
+                new_username = st.text_input("Username", help="Choose a unique username")
+                new_email = st.text_input("Email Address", help="For password recovery")
                 new_password = st.text_input("Password", type="password")
                 confirm_password = st.text_input("Confirm Password", type="password")
                 submit = st.form_submit_button("Create Account", use_container_width=True)
                 
                 if submit:
-                    if not new_email or not new_password:
+                    if not new_username or not new_email or not new_password:
                         st.error("All fields are required")
+                    elif len(new_username) < 3:
+                        st.error("Username must be at least 3 characters")
                     elif "@" not in new_email or "." not in new_email:
                         st.error("Please provide a valid email address")
                     elif new_password != confirm_password:
@@ -201,14 +208,18 @@ def login_page():
                     elif len(new_password) < 8:
                         st.error("Password must be at least 8 characters.")
                     elif get_user_by_email(new_email):
-                        st.error("Account already exists. Please log in.")
+                        st.error("Email already registered. Please use a different email.")
                     else:
-                        pwd_hash = hash_password(new_password)
-                        user_id = create_user(new_email, pwd_hash)
-                        if user_id:
-                            st.success("Account created successfully! Please login.")
+                        from src.auth.security import get_user_by_username
+                        if get_user_by_username(new_username):
+                            st.error("Username already taken. Please choose another.")
                         else:
-                            st.error("Failed to create account")
+                            pwd_hash = hash_password(new_password)
+                            user_id = create_user(new_username, new_email, pwd_hash)
+                            if user_id:
+                                st.success("Account created successfully! Please login.")
+                            else:
+                                st.error("Failed to create account")
                             
         with tab3:
             st.markdown("### 🔑 Reset Password (Demo Mode)")

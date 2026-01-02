@@ -10,7 +10,7 @@ def render_settings():
         return
 
     user_id = st.session_state.user_id
-    email = st.session_state.email
+    username = st.session_state.get('username', email.split('@')[0] if email else "User")
     
     st.markdown(f"""
     <div style="margin-bottom: 20px; text-align: center;">
@@ -21,8 +21,8 @@ def render_settings():
 
     # --- 1. Account Info ---
     st.markdown("### 👤 Account")
-    username = email.split('@')[0] if email else "User"
     st.text_input("Username", value=username, disabled=True)
+    st.text_input("Email", value=email, disabled=True, help="Used for password recovery")
     
     # --- 2. Preferences ---
     st.markdown("### ⚙️ Preferences")
@@ -44,7 +44,7 @@ def render_settings():
                 elif not curr_pass or not new_pass:
                     st.error("All fields required.")
                 else:
-                    if change_password(email, curr_pass, new_pass):
+                    if change_password(username, curr_pass, new_pass):
                         st.success("Password updated successfully.")
                     else:
                         st.error("Incorrect current password.")

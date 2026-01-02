@@ -14,17 +14,26 @@ def init_db():
     conn = get_connection()
     cursor = conn.cursor()
     
-    # Users Table (V32: Enforced Email Schema)
+    # Users Table (V33: Added username field)
     try:
-        cursor.execute("SELECT email FROM users LIMIT 1")
+        cursor.execute("SELECT username FROM users LIMIT 1")
     except sqlite3.OperationalError:
-        # Migration: If 'email' column missing, recreate table
-        cursor.execute("DROP TABLE IF EXISTS users")
-        cursor.execute("DROP TABLE IF EXISTS password_resets")
+        # Migration: Add username column if it doesn't exist
+        try:
+            cursor.execute("ALTER TABLE users ADD COLUMN username TEXT")
+            # Set default usernames for existing users (email prefix)
+            cursor.execute("""
+                UPDATE users 
+                SET username = SUBSTR(email, 1, INSTR(email, '@') - 1)
+                WHERE username IS NULL
+            """)
+        except sqlite3.OperationalError:
+            pass  # Column might already exist
     
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT UNIQUE NOT NULL,
         email TEXT UNIQUE NOT NULL,
         password_hash TEXT NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP

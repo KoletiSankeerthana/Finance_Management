@@ -2,14 +2,14 @@ from .schema import get_connection
 import pandas as pd
 import streamlit as st
 
-# --- User Management (V32: Email Enforced) ---
-def create_user(email, password_hash):
+# --- User Management (V33: Username + Email) ---
+def create_user(username, email, password_hash):
     conn = get_connection()
     cursor = conn.cursor()
     try:
         cursor.execute(
-            "INSERT INTO users (email, password_hash) VALUES (?, ?)",
-            (email, password_hash)
+            "INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)",
+            (username, email, password_hash)
         )
         user_id = cursor.lastrowid
         init_user_defaults(user_id, cursor)
@@ -26,6 +26,14 @@ def get_user_by_email(email):
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM users WHERE email = ?", (email,))
+    user = cursor.fetchone()
+    conn.close()
+    return user
+
+def get_user_by_username(username):
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM users WHERE username = ?", (username,))
     user = cursor.fetchone()
     conn.close()
     return user
