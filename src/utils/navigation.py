@@ -40,24 +40,19 @@ def render_sidebar():
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             background-color: #050505 !important;
             border-right: 1px solid rgba(255, 255, 255, 0.05);
-            overflow: visible !important; /* Allow absolute toggle to be seen clearly */
+            overflow: visible !important;
         }}
         [data-testid="stSidebarNav"] {{ display: none; }} /* Hide default nav */
         
-        /* When collapsed, hide EVERYTHING except our toggle button wrapper */
-        {f" div[data-testid='stSidebar'] .sidebar-text-container, div[data-testid='stSidebar'] .username-text, div[data-testid='stSidebar'] hr, div[data-testid='stSidebar'] .stButton:not(:has(.sidebar-toggle-btn)) {{ display: none !important; }} " if not expanded else ""}
-        
-        /* Ensure the toggle button itself is always visible and positioned correctly */
+        /* Persistent Toggle Button Styling */
         .sidebar-toggle-btn {{
             position: absolute !important;
             top: 10px !important;
-            z-index: 1000 !important;
-            width: 100% !important;
-            display: flex !important;
-            justify-content: {"flex-end" if expanded else "center"} !important;
-            padding-right: {"20px" if expanded else "0"} !important;
+            left: 10px !important;
+            z-index: 10000 !important;
+            width: auto !important;
+            display: block !important;
         }}
-
         .sidebar-toggle-btn button {{
             background: transparent !important;
             border: none !important;
@@ -70,74 +65,45 @@ def render_sidebar():
             display: flex !important;
             align-items: center !important;
             justify-content: center !important;
+            transition: color 0.3s ease !important;
+        }}
+        .sidebar-toggle-btn button:hover {{
+            color: var(--primary) !important;
+            background: rgba(255,255,255,0.05) !important;
+            border-radius: 8px !important;
         }}
 
+        /* Hide content when collapsed */
+        {f" .sidebar-text-container, .username-text, hr, [data-testid='stSidebar'] .stButton:not(:has(.sidebar-toggle-btn)) {{ opacity: 0 !important; pointer-events: none !important; }} " if not expanded else ""}
+        
+        /* Prevent character stacking */
         [data-testid="stSidebar"] * {{
             word-break: keep-all !important;
             overflow-wrap: normal !important;
             white-space: nowrap !important;
         }}
         
-        /* Hide default Streamlit sidebar toggle */
+        /* Hide native Streamlit header button */
         button[kind="header"] {{ display: none !important; }}
         </style>
-        
-        <!-- REMOVED CUSTOM HAMBURGER ("3 lines") and HIDDEN NATIVE CHEVRON ("<") AS REQUESTED -->
-        <!-- The sidebar will now rely on its expanded state and window width -->
-        
-    """, unsafe_allow_html=True)
-
-    with st.sidebar:
-        # Internal State Management Buttons (HIDDEN via container class)
-        # These manage the actual python state.
-        
-        # Force HIDE the internal proxy buttons using JavaScript (More robust than CSS :has)
-        st.markdown("""
         <script>
-        function hideNativeElements() {
+        function hideNativeElements() {{
             const doc = window.parent.document;
             const buttons = doc.querySelectorAll('button');
-            
-            buttons.forEach(btn => {
-                // Hide ONLY the Native Streamlit Sidebar Close Button (Chevron)
-                if (btn.getAttribute("kind") === "header") {
+            buttons.forEach(btn => {{
+                if (btn.getAttribute("kind") === "header") {{
                     btn.style.display = 'none';
-                }
-            });
-        }
-        
+                }}
+            }});
+        }}
         hideNativeElements();
         setTimeout(hideNativeElements, 100);
         setInterval(hideNativeElements, 1000); 
         </script>
-        <style>
-        /* Hide native Streamlit header button */
-        [data-testid="stSidebar"] button[kind="header"] {
-            display: none !important;
-        }
 
-        /* Style our custom toggle arrows */
-        .sidebar-toggle-btn button {
-            background: transparent !important;
-            border: none !important;
-            color: #888 !important;
-            font-size: 1.5rem !important;
-            padding: 0 !important;
-            min-height: 0 !important;
-            transition: color 0.3s ease !important;
-            position: absolute !important;
-            top: 10px !important;
-            right: 15px !important;
-            z-index: 1000 !important;
-            width: auto !important;
-        }
-        .sidebar-toggle-btn button:hover {
-            color: var(--primary) !important;
-            background: transparent !important;
-        }
-        </style>
-        """, unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
 
+    with st.sidebar:
         # 1. Sidebar Toggle Button (Primary Control)
         st.markdown('<div class="sidebar-toggle-btn">', unsafe_allow_html=True)
         if expanded:
