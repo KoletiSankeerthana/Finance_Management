@@ -96,55 +96,61 @@ def render_sidebar():
         # Force HIDE the internal proxy buttons using JavaScript (More robust than CSS :has)
         st.markdown("""
         <script>
-        function hideArrows() {
+        function hideNativeElements() {
             const doc = window.parent.document;
             const buttons = doc.querySelectorAll('button');
             
             buttons.forEach(btn => {
-                // 1. Hide Native Sidebar Close Button (Chevron)
+                // Hide ONLY the Native Streamlit Sidebar Close Button (Chevron)
                 if (btn.getAttribute("kind") === "header") {
                     btn.style.display = 'none';
-                }
-                
-                // 2. Hide our Internal Proxy Buttons (« and »)
-                // We check innerText carefully
-                if (btn.innerText.includes("«") || btn.innerText.includes("»")) {
-                    btn.style.display = 'none';
-                    // Ensure they are still clickable by JS but invisible layout-wise
-                    btn.style.visibility = 'hidden';
-                    btn.style.position = 'absolute';
-                    btn.style.width = '0px';
-                    btn.style.height = '0px';
                 }
             });
         }
         
-        // Run immediately and on frequent intervals to catch re-renders
-        hideArrows();
-        setTimeout(hideArrows, 100);
-        setTimeout(hideArrows, 500);
-        setInterval(hideArrows, 1000); // Polling ensures it stays hidden if Streamlit re-mounts
+        hideNativeElements();
+        setTimeout(hideNativeElements, 100);
+        setInterval(hideNativeElements, 1000); 
         </script>
         <style>
-        /* Fallback CSS for native header */
+        /* Hide native Streamlit header button */
         [data-testid="stSidebar"] button[kind="header"] {
             display: none !important;
+        }
+
+        /* Style our custom toggle arrows */
+        .sidebar-toggle-btn button {
+            background: transparent !important;
+            border: none !important;
+            color: #888 !important;
+            font-size: 1.5rem !important;
+            padding: 0 !important;
+            min-height: 0 !important;
+            transition: color 0.3s ease !important;
+            position: absolute !important;
+            top: 10px !important;
+            right: 15px !important;
+            z-index: 1000 !important;
+            width: auto !important;
+        }
+        .sidebar-toggle-btn button:hover {
+            color: var(--primary) !important;
+            background: transparent !important;
         }
         </style>
         """, unsafe_allow_html=True)
 
-        with st.container():
-             # Inject CSS to hide this specific container content
-            st.markdown('<div class="hidden-toggle-container">', unsafe_allow_html=True)
-            if expanded:
-                 if st.button("«", key="sidebar_toggle_collapse"):
-                    st.session_state.sidebar_expanded = False
-                    st.rerun()
-            else:
-                 if st.button("»", key="sidebar_toggle_expand"):
-                    st.session_state.sidebar_expanded = True
-                    st.rerun()
-            st.markdown('</div>', unsafe_allow_html=True)
+    # 1. Sidebar Toggle Button (Primary Control)
+    st.markdown('<div class="sidebar-toggle-btn">', unsafe_allow_html=True)
+    if expanded:
+        if st.button("«", key="sidebar_toggle_collapse"):
+            st.session_state.sidebar_expanded = False
+            st.rerun()
+    else:
+        if st.button("»", key="sidebar_toggle_expand"):
+            st.session_state.sidebar_expanded = True
+            st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
 
         st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
 
