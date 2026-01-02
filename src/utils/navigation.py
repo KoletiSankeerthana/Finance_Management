@@ -59,13 +59,15 @@ def render_sidebar():
             left: 10px !important;
             z-index: 10000 !important;
             width: auto !important;
-            display: block !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
         }}
         .sidebar-toggle-btn button {{
             background: transparent !important;
             border: none !important;
             color: #888 !important;
-            font-size: 1.5rem !important;
+            font-size: 1.8rem !important;
             padding: 0 !important;
             min-height: 0 !important;
             width: 40px !important;
@@ -73,7 +75,7 @@ def render_sidebar():
             display: flex !important;
             align-items: center !important;
             justify-content: center !important;
-            transition: color 0.3s ease !important;
+            transition: color 0.3s ease, background 0.3s ease !important;
         }}
         .sidebar-toggle-btn button:hover {{
             color: var(--primary) !important;
@@ -114,16 +116,11 @@ def render_sidebar():
     """, unsafe_allow_html=True)
 
     with st.sidebar:
-        # 1. Sidebar Toggle Button (Primary Control)
+        # 1. Unified Sidebar Toggle Button (☰)
         st.markdown('<div class="sidebar-toggle-btn">', unsafe_allow_html=True)
-        if expanded:
-            if st.button("«", key="sidebar_toggle_collapse"):
-                st.session_state.sidebar_expanded = False
-                st.rerun()
-        else:
-            if st.button("»", key="sidebar_toggle_expand"):
-                st.session_state.sidebar_expanded = True
-                st.rerun()
+        if st.button("☰", key="sidebar_toggle_unified"):
+            st.session_state.sidebar_expanded = not st.session_state.get('sidebar_expanded', True)
+            st.rerun()
         st.markdown('</div>', unsafe_allow_html=True)
 
         st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
