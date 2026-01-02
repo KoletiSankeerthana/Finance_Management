@@ -42,20 +42,25 @@ def render_sidebar():
         [data-testid="stSidebarNav"] {{ display: none; }} /* Hide default nav */
         
         /* Prevent vertical wrapping on small sidebars */
-        .stButton button {{ 
+        /* Prevent vertical wrapping on small sidebars - COMPACT STYLE */
+        .stButton button { 
             white-space: nowrap !important; 
             overflow: hidden !important; 
             text-align: left !important;
-            padding-left: 15px !important;
-        }}
+            padding: 2px 12px !important;  /* Reduced padding for 'little up' compactness */
+            height: 42px !important;       /* Fixed smaller height */
+            min-height: 42px !important;
+            margin-bottom: 4px !important; /* Tighter spacing */
+        }
         
         /* Sidebar item text stays in one line */
-        div[data-testid="stSidebar"] button div p {{
+        div[data-testid="stSidebar"] button div p {
             white-space: nowrap !important;
             overflow: hidden !important;
             text-overflow: ellipsis !important;
             display: block !important;
-        }}
+            font-size: 0.95rem !important; /* Slightly smaller font for neatness */
+        }
         
         /* Hide default Streamlit sidebar toggle */
         button[kind="header"] {{ display: none !important; }}
@@ -165,7 +170,7 @@ def render_sidebar():
                 btn_label, 
                 key=f"nav_{label}", 
                 use_container_width=True,
-                type="primary" if is_active else "secondary"
+                type="primary" # All buttons Green as requested
             ):
                 st.session_state.current_page = label
                 st.rerun()

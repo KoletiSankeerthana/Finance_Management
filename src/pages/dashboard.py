@@ -99,17 +99,27 @@ def render_dashboard():
     is_overspent = overspent_amount > 0
     
     # Display using Streamlit columns - responsive
-    b_cols = st.columns(4 if is_overspent else 3)
-    b_cols[0].metric("Total", format_currency(total_budget_limit))
-    b_cols[1].metric("Spent", format_currency(total_spent_in_budgets))
-    b_cols[2].metric("Balance", format_currency(remaining_budget))
-    if is_overspent:
-        b_cols[3].metric("Overspent", format_currency(overspent_amount))
+    # Display using Consistent Cards
+    bc1, bc2, bc3, bc4 = st.columns(4) if is_overspent else st.columns(3)
     
-    # Progress bar
-    percent_actual = (total_spent_in_budgets / total_budget_limit * 100) if total_budget_limit > 0 else 0
-    st.progress(min(percent_actual / 100, 1.0))
-    st.caption(f"{percent_actual:.1f}% Utilized")
+    with bc1:
+        st.markdown(card_html("TOTAL LIMIT", "ALL CATEGORIES", format_currency(total_budget_limit)), unsafe_allow_html=True)
+    with bc2:
+        st.markdown(card_html("TOTAL SPENT", f"{percent_actual:.1f}% Used", format_currency(total_spent_in_budgets)), unsafe_allow_html=True)
+    with bc3:
+        st.markdown(card_html("REMAINING", "Available Balance", format_currency(remaining_budget)), unsafe_allow_html=True)
+        
+    if is_overspent:
+        with bc4:
+             st.markdown(card_html("OVERSPENT", "Exceeded Limit", format_currency(overspent_amount)), unsafe_allow_html=True)
+
+    # Progress bar with better styling
+    st.markdown(f"""
+    <div style="margin-top: 15px; background: rgba(255,255,255,0.1); border-radius: 6px; height: 10px; overflow: hidden;">
+        <div style="width: {min(percent_actual, 100)}%; background: {'#ef4444' if is_overspent else '#10b981'}; height: 100%;"></div>
+    </div>
+    <p style="text-align: right; font-size: 0.8rem; color: #a4b0be; margin-top: 5px;">{percent_actual:.1f}% Utilized</p>
+    """, unsafe_allow_html=True)
     
     st.markdown("---")
 
