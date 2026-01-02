@@ -1,2 +1,2 @@
-Deployment Verification: 2026-01-02 12:44:00
+Deployment Verification: 2026-01-02 12:49:00
 Purpose: Force Streamlit Cloud to detect a file-level change and rebuild.

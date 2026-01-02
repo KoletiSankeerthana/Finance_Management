@@ -75,63 +75,81 @@ def render_sidebar():
         </style>
     """, unsafe_allow_html=True)
 
-    # Floating Toggle for accessibility when sidebar is collapsed OR on mobile
-    # Streamlit's [data-testid="stSidebar"] can be hidden, but we want our toggle always visible
+    # --- HIDDEN TRIGGER PATTERN FOR GLOBAL TOGGLE ---
+    # This hidden button allows the JS hamburger to communicate with Python state reliably.
+    # It must be in the main page flow (not sidebar) to be always present.
+    with st.container():
+        # Unique key to ensure it doesn't conflict
+        if st.button("ProcessSidebarToggle", key="global_sidebar_trigger"):
+            st.session_state.sidebar_expanded = not expanded
+            st.rerun()
+            
+    # CSS to hide the trigger button but keep it effectively clickable by JS
     st.markdown("""
         <style>
-        /* Custom Hamburger Styling */
+        /* Hide the specific trigger button visually */
+        div[data-testid="stVerticalBlock"] button:has(div p:contains("ProcessSidebarToggle")) {
+            display: none;
+        }
+        /* Fallback for browsers not supporting :has or complex selectors */
+        </style>
+        
+        <script>
+        // Ensure the button is hidden via JS as well to be safe
+        const triggerBtn = Array.from(window.parent.document.querySelectorAll('button')).find(b => b.innerText.includes("ProcessSidebarToggle"));
+        if(triggerBtn) {
+            triggerBtn.style.display = 'none';
+        }
+
+        function toggleSidebar() {
+            // Find the hidden trigger button by its text content
+            const buttons = Array.from(window.parent.document.querySelectorAll('button'));
+            const trigger = buttons.find(b => b.innerText.includes("ProcessSidebarToggle"));
+            
+            if (trigger) {
+                trigger.click();
+            } else {
+                // Fallback to native toggle if our custom trigger is missing
+                const headerBtn = window.parent.document.querySelector('button[kind="header"]');
+                if (headerBtn) headerBtn.click();
+            }
+        }
+        </script>
+        
+        <!-- The Floating Hamburger -->
+        <div class="custom-hamburger" onclick="toggleSidebar()" title="Toggle Sidebar">
+            <span style="font-size: 1.2rem; font-weight: bold;">☰</span>
+        </div>
+    """, unsafe_allow_html=True)
+    
+    # CSS for hamburger styling (Keep existing, just ensure z-index)
+    st.markdown("""
+        <style>
         .custom-hamburger {
             position: fixed;
             top: 20px;
             left: 20px;
-            z-index: 999999;
+            z-index: 9999999; /* Max Z-Index */
             background-color: #0E1117;
             color: white;
             padding: 8px 12px;
             border-radius: 8px;
             cursor: pointer;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
             border: 1px solid rgba(255,255,255,0.1);
             display: flex;
             align-items: center;
             justify_content: center;
-            transition: background-color 0.3s;
+            transition: all 0.2s ease;
         }
         .custom-hamburger:hover {
             background-color: #262730;
+            transform: scale(1.05);
+        }
+        .custom-hamburger:active {
+            transform: scale(0.95);
         }
         </style>
-        
-        <script>
-        function toggleSidebar() {
-            const buttons = window.parent.document.querySelectorAll('button');
-            let clicked = false;
-            // 1. Try finding my custom inner toggle buttons (Expand/Collapse arrows)
-            buttons.forEach(btn => {
-                // Check inner text for arrows or specific help text
-                const text = btn.innerText || "";
-                const help = btn.getAttribute("title") || "";
-                
-                if ((text.includes('»') || text.includes('«') || help.includes('Sidebar')) && !clicked) {
-                    btn.click();
-                    clicked = true;
-                }
-            });
-            
-            // 2. Fallback: Toggle Streamlit's native header button if my custom ones aren't found
-            if (!clicked) {
-                const headerBtn = window.parent.document.querySelector('button[kind="header"]');
-                if (headerBtn) {
-                    headerBtn.click();
-                    clicked = true;
-                }
-            }
-        }
-        </script>
-        
-        <div class="custom-hamburger" onclick="toggleSidebar()" title="Toggle Sidebar">
-            <span style="font-size: 1.2rem; font-weight: bold;">☰</span>
-        </div>
     """, unsafe_allow_html=True)
 
     with st.sidebar:
