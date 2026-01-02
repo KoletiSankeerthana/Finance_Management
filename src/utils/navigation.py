@@ -31,7 +31,7 @@ def render_sidebar():
     expanded = st.session_state.get('sidebar_expanded', True)
     
     # CSS for Sidebar Width control and responsiveness
-    sidebar_width = "280px" if expanded else "80px"
+    sidebar_width = "280px" if expanded else "60px"
     st.markdown(f"""
         <style>
         [data-testid="stSidebar"] {{
@@ -40,44 +40,23 @@ def render_sidebar():
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             background-color: #050505 !important;
             border-right: 1px solid rgba(255, 255, 255, 0.05);
+            overflow: hidden !important;
         }}
         [data-testid="stSidebarNav"] {{ display: none; }} /* Hide default nav */
         
-        /* Prevent ANY vertical character stacking */
+        /* When collapsed, hide EVERYTHING except our toggle button */
+        {" .sidebar-text-container, .username-text, div[data-testid='stSidebar'] p, div[data-testid='stSidebar'] button, hr { display: none !important; } " if not expanded else ""}
+        
+        /* Re-show ONLY our custom toggle buttons even when other buttons are hidden */
+        .sidebar-toggle-btn button {{ 
+            display: flex !important; 
+            background: transparent !important;
+        }}
+
         [data-testid="stSidebar"] * {{
             word-break: keep-all !important;
             overflow-wrap: normal !important;
             white-space: nowrap !important;
-        }}
-        
-        /* Sidebar item text stays in one line with ellipsis */
-        div[data-testid="stSidebar"] button div p {{
-            text-overflow: ellipsis !important;
-            display: block !important;
-            font-size: 0.9rem !important;
-        }}
-
-        /* Responsive Breakpoints: Single Clean Block */
-        @media (max-width: 1024px) {{
-            /* Tablet transition: Force collapse to icons visually */
-            [data-testid="stSidebar"] {{
-                min-width: 80px !important;
-                max-width: 80px !important;
-            }}
-            
-            /* Show ONLY icon: set a narrow width and center it */
-            [data-testid="stSidebar"] button div p {{
-                width: 32px !important; 
-                overflow: hidden !important;
-                text-align: center !important;
-                margin: 0 auto !important;
-                font-size: 1.25rem !important;
-            }}
-            
-            /* Hide title and username text on small screens */
-            .sidebar-text-container, .username-text, .nav-text {{
-                display: none !important;
-            }}
         }}
         
         /* Hide default Streamlit sidebar toggle */
