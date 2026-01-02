@@ -15,7 +15,7 @@ def render_home():
     st.markdown("---")
     
     # What is this app about?
-    st.markdown("### 💡 What is Expense Tracker?")
+    st.markdown("###  What is Expense Tracker?")
     st.markdown("""
     **Expense Tracker** is a comprehensive personal finance management application designed to help you:
     - Track your daily expenses with ease
@@ -30,7 +30,7 @@ def render_home():
     st.markdown("---")
     
     # What it contains
-    st.markdown("### 📦 Features & Pages")
+    st.markdown("###  Features & Pages")
     
     col1, col2 = st.columns(2)
     
@@ -61,7 +61,7 @@ def render_home():
     st.markdown("---")
     
     # How to use it
-    st.markdown("### 🚀 How to Use")
+    st.markdown("### How to Use")
     st.markdown("""
     1. **Start with Categories**: Navigate to the **Categories** page and create your expense categories (e.g., Food, Transport, Entertainment).
     

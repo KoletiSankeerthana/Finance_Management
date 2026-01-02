@@ -57,11 +57,18 @@ def render_dashboard():
     
     def card_html(label, date_info, value):
         return f"""
-        <div style="background-color: #161b22; padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.3); min-height: 120px; display: flex; flex-direction: column; justify-content: center; overflow: hidden;">
+        <div class="dashboard-card" style="background-color: #161b22; padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.3); min-height: 120px; display: flex; flex-direction: column; justify-content: center; overflow: hidden; transition: all 0.3s ease; cursor: pointer;">
             <p style="color: #a4b0be; font-size: 0.75rem; margin: 0; font-weight: 500; letter-spacing: 0.5px;">{label}</p>
             <p style="color: #008080; font-size: 0.7rem; margin: 2px 0;">{date_info}</p>
             <h3 style="color: #fafafa; margin: 0; font-family: 'Times New Roman', serif; font-size: 1.3rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{value}</h3>
         </div>
+        <style>
+        .dashboard-card:hover {{
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0,128,128,0.3);
+            border-color: rgba(0,128,128,0.5);
+        }}
+        </style>
         """
 
     with c1:

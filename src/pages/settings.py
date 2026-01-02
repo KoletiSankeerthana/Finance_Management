@@ -21,7 +21,8 @@ def render_settings():
 
     # --- 1. Account Info ---
     st.markdown("### 👤 Account")
-    st.text_input("Email Address", value=email, disabled=True)
+    username = email.split('@')[0] if email else "User"
+    st.text_input("Username", value=username, disabled=True)
     
     # --- 2. Preferences ---
     st.markdown("### ⚙️ Preferences")
