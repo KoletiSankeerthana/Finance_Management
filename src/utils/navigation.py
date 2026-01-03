@@ -32,7 +32,7 @@ def render_sidebar():
     expanded = st.session_state.get('sidebar_expanded', True)
     
     # CSS for Sidebar Width control and responsiveness
-    sidebar_width = "280px" if expanded else "60px"
+    sidebar_width = "280px" if expanded else "0px"
     st.markdown(f"""
         <style>
         /* Mobile-First: Dynamic Width */
@@ -42,52 +42,57 @@ def render_sidebar():
                 max-width: {sidebar_width} !important;
                 transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             }}
+            /* Force main content to expand when sidebar is width 0 */
+            {f"[data-testid='stMain'] {{ margin-left: 0 !important; }}" if not expanded else ""}
         }}
         
         [data-testid="stSidebar"] {{
             background-color: #050505 !important;
             border-right: 1px solid rgba(255, 255, 255, 0.05);
-            overflow: visible !important;
+            overflow: visible !important; /* Critical to show the fixed toggle */
         }}
         
         [data-testid="stSidebarNav"] {{ display: none; }} /* Hide default nav */
         
-        /* Persistent Toggle Button Styling */
+        /* Persistent Toggle Button Styling - Always Fixed at top-left */
         .sidebar-toggle-btn {{
-            position: absolute !important;
-            top: 10px !important;
-            left: 10px !important;
-            z-index: 10000 !important;
-            width: auto !important;
+            position: fixed !important;
+            top: 15px !important;
+            left: 15px !important;
+            z-index: 99999 !important; /* Top of everything */
             display: flex !important;
             align-items: center !important;
             justify-content: center !important;
         }}
         .sidebar-toggle-btn button {{
-            background: transparent !important;
-            border: none !important;
-            color: #888 !important;
+            background: rgba(11, 14, 20, 0.8) !important; /* Slightly transparent back */
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255,255,255,0.1) !important;
+            color: #ffffff !important;
             font-size: 1.8rem !important;
             padding: 0 !important;
             min-height: 0 !important;
-            width: 40px !important;
-            height: 40px !important;
+            width: 45px !important;
+            height: 45px !important;
+            border-radius: 50% !important;
             display: flex !important;
             align-items: center !important;
             justify-content: center !important;
-            transition: color 0.3s ease, background 0.3s ease !important;
+            transition: all 0.3s ease !important;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
         }}
         .sidebar-toggle-btn button:hover {{
             color: var(--primary) !important;
-            background: rgba(255,255,255,0.05) !important;
-            border-radius: 8px !important;
+            background: rgba(255,255,255,0.1) !important;
+            transform: scale(1.1);
         }}
 
-        /* Hide content when collapsed (Desktop only) */
-        @media (min-width: 768px) {{
-            {f" .sidebar-text-container, .username-text, hr, [data-testid='stSidebar'] .stButton:not(:has(.sidebar-toggle-btn)) {{ opacity: 0 !important; pointer-events: none !important; }} " if not expanded else ""}
-        }}
+        /* Hide content when collapsed (exclude the toggle wrapper) */
+        {f" div[data-testid='stSidebar'] .sidebar-text-container, div[data-testid='stSidebar'] .username-text, div[data-testid='stSidebar'] hr, div[data-testid='stSidebar'] .stButton, div[data-testid='stSidebar'] .stCaption {{ opacity: 0 !important; pointer-events: none !important; }} " if not expanded else ""}
         
+        /* Special case: hide everything but allow the toggle wrapper back */
+        .sidebar-toggle-btn {{ opacity: 1 !important; pointer-events: auto !important; }}
+
         /* Prevent character stacking */
         [data-testid="stSidebar"] * {{
             word-break: keep-all !important;
