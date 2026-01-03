@@ -1,6 +1,5 @@
-# V38: Clear Branding Sync - Final Attempt
+# Expense Tracker - Final Rebuilt Version
 import streamlit as st
-# V35: Force Reload - CRUD Fixed
 import sqlite3
 import hashlib
 import secrets
@@ -103,7 +102,8 @@ def local_css():
         border-right: 1px solid var(--border);
     }
     
-    #MainMenu, header, footer {visibility: hidden;}
+    #MainMenu, footer {visibility: hidden;}
+    header { visibility: visible !important; } /* Ensure sidebar toggle is visible */
     
     /* Buttons */
     .stButton>button {
