@@ -35,16 +35,14 @@ def render_sidebar():
     sidebar_width = "280px" if expanded else "0px"
     st.markdown(f"""
         <style>
-        /* Mobile-First: Dynamic Width */
-        @media (min-width: 768px) {{
-            [data-testid="stSidebar"] {{
-                min-width: {sidebar_width} !important;
-                max-width: {sidebar_width} !important;
-                transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            }}
-            /* Force main content to expand when sidebar is width 0 */
-            {f"[data-testid='stMain'] {{ margin-left: 0 !important; }}" if not expanded else ""}
+        /* Universal SideBar: 0px or 280px everywhere */
+        [data-testid="stSidebar"] {{
+            min-width: {sidebar_width} !important;
+            max-width: {sidebar_width} !important;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }}
+        /* Force main content to expand when sidebar is width 0 */
+        {f"[data-testid='stMain'] {{ margin-left: 0 !important; padding-left: 1rem !important; }}" if not expanded else ""}
         
         [data-testid="stSidebar"] {{
             background-color: #050505 !important;
@@ -65,30 +63,30 @@ def render_sidebar():
             justify-content: center !important;
         }}
         .sidebar-toggle-btn button {{
-            background: rgba(11, 14, 20, 0.8) !important; /* Slightly transparent back */
+            background: rgba(0, 128, 128, 0.2) !important; /* Low-profile teal tint */
             backdrop-filter: blur(5px);
-            border: 1px solid rgba(255,255,255,0.1) !important;
-            color: #ffffff !important;
-            font-size: 1.8rem !important;
+            border: 1px solid rgba(0, 128, 128, 0.3) !important;
+            color: var(--primary) !important;
+            font-size: 1.2rem !important;
             padding: 0 !important;
             min-height: 0 !important;
-            width: 45px !important;
-            height: 45px !important;
-            border-radius: 50% !important;
+            width: 32px !important;
+            height: 32px !important;
+            border-radius: 8px !important;
             display: flex !important;
             align-items: center !important;
             justify-content: center !important;
-            transition: all 0.3s ease !important;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            transition: all 0.2s ease !important;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
         }}
         .sidebar-toggle-btn button:hover {{
-            color: var(--primary) !important;
-            background: rgba(255,255,255,0.1) !important;
-            transform: scale(1.1);
+            background: var(--primary) !important;
+            color: white !important;
+            transform: scale(1.05);
         }}
 
-        /* Hide content when collapsed (exclude the toggle wrapper) */
-        {f" div[data-testid='stSidebar'] .sidebar-text-container, div[data-testid='stSidebar'] .username-text, div[data-testid='stSidebar'] hr, div[data-testid='stSidebar'] .stButton, div[data-testid='stSidebar'] .stCaption {{ opacity: 0 !important; pointer-events: none !important; }} " if not expanded else ""}
+        /* Hide content when collapsed */
+        {f" div[data-testid='stSidebar'] .sidebar-text-container, div[data-testid='stSidebar'] .username-text, div[data-testid='stSidebar'] hr, div[data-testid='stSidebar'] .stButton, div[data-testid='stSidebar'] .stCaption, div[data-testid='stSidebar'] p {{ opacity: 0 !important; pointer-events: none !important; }} " if not expanded else ""}
         
         /* Special case: hide everything but allow the toggle wrapper back */
         .sidebar-toggle-btn {{ opacity: 1 !important; pointer-events: auto !important; }}
@@ -121,17 +119,15 @@ def render_sidebar():
     """, unsafe_allow_html=True)
 
     with st.sidebar:
-        # 1. Unified Sidebar Toggle Button (☰)
+        # 1. Persistent Arrow Toggle (Fix for all devices)
         st.markdown('<div class="sidebar-toggle-btn">', unsafe_allow_html=True)
-        if st.button("☰", key="sidebar_toggle_unified"):
-            st.session_state.sidebar_expanded = not st.session_state.get('sidebar_expanded', True)
+        toggle_icon = "«" if expanded else "»"
+        if st.button(toggle_icon, key="sidebar_toggle_persistent"):
+            st.session_state.sidebar_expanded = not expanded
             st.rerun()
         st.markdown('</div>', unsafe_allow_html=True)
 
         st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
-        # Final Sync Marker
-        st.caption(f"🔄 Last Sync: {datetime.now().strftime('%H:%M:%S')}")
-        st.caption("🚀 Final Mobile-Ready Build Live")
 
         if expanded:
             st.markdown(f"""

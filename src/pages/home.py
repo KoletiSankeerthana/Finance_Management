@@ -8,7 +8,7 @@ def render_home():
     st.markdown("""
     <div style="margin-bottom: 20px; text-align: center;">
         <h1 class='app-header-title'>WELCOME TO EXPENSE TRACKER</h1>
-        <p class='app-header-subtitle'>Your Personal Finance Management Solution</p>
+        <p class='app-header-subtitle'>Your Personal Finance Management</p>
     </div>
     """, unsafe_allow_html=True)
     
