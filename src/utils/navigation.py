@@ -60,38 +60,42 @@ def render_sidebar():
                 <p style='font-size: 0.7rem; color:var(--text-muted); margin:0;'>{APP_SUBTITLE}</p>
             </div>
             """, unsafe_allow_html=True)
-            # Display username
-            username = st.session_state.get('username', "User")
-            st.markdown(f"<p class='username-text' style='margin-left: 10px;'>👤 **{username}**</p>", unsafe_allow_html=True)
-            st.markdown("---")
+            
+            # Display user info only if authenticated
+            if st.session_state.get('authenticated', False):
+                username = st.session_state.get('username', "User")
+                st.markdown(f"<p class='username-text' style='margin-left: 10px;'>👤 **{username}**</p>", unsafe_allow_html=True)
+                st.markdown("---")
+            else:
+                st.markdown("<p style='margin-left: 10px; font-size: 0.8rem;'>Please log in to continue</p>", unsafe_allow_html=True)
+                st.markdown("---")
         else:
             st.markdown("<div style='height: 20px;'></div>", unsafe_allow_html=True)
 
-        # Navigation Menu
-        for label, config in NAV_CONFIG.items():
-            is_active = st.session_state.current_page == label
-            icon = config.get('icon', '')
-            
-            if expanded:
-                btn_label = f"{icon}  {label}"
-            else:
-                btn_label = icon if icon else label[:1]
-            
-            if st.button(
-                btn_label, 
-                key=f"nav_{label}", 
-                use_container_width=True,
-                type="primary" # All buttons Green as requested
-            ):
-                st.session_state.current_page = label
-                st.rerun()
+        # Navigation Menu - ONLY IF AUTHENTICATED
+        if st.session_state.get('authenticated', False):
+            for label, config in NAV_CONFIG.items():
+                is_active = st.session_state.current_page == label
+                icon = config.get('icon', '')
+                
+                if expanded:
+                    btn_label = f"{icon}  {label}"
+                else:
+                    btn_label = icon if icon else label[:1]
+                
+                if st.button(
+                    btn_label, 
+                    key=f"nav_{label}", 
+                    use_container_width=True,
+                    type="primary"
+                ):
+                    st.session_state.current_page = label
+                    st.rerun()
 
-        st.markdown("---")
-        # Use a div to allow CSS targeting for text part if needed, 
-        # but for buttons we rely on the global div[data-testid="stSidebar"] button div p rule
-        logout_btn_label = "🔓 Logout" if expanded else "🔓"
-        if st.button(logout_btn_label, use_container_width=True, key="sidebar_logout"):
-            logout_user()
+            st.markdown("---")
+            logout_btn_label = "🔓 Logout" if expanded else "🔓"
+            if st.button(logout_btn_label, use_container_width=True, key="sidebar_logout"):
+                logout_user()
 
 def render_bottom_nav(current_page_key):
     """

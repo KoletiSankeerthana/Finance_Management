@@ -1,8 +1,8 @@
 # src/utils/constants.py
 
 # --- UI Branding ---
-APP_TITLE = "FINANCE TRACKER"
-APP_SUBTITLE = "Smart & Simple Personal Finance Manager"
+APP_TITLE = "EXPENSE TRACKER"
+APP_SUBTITLE = "Your Personal Finance Management"
 PRIMARY_COLOR = "#008080"  # Teal
 SECONDARY_COLOR = "#0d1117"
 ACCENT_SUCCESS = "#2ecc71"

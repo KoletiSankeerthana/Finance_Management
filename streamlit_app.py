@@ -1,4 +1,4 @@
-# Expense Tracker - Final Rebuilt Version
+# Expense Tracker - Final Version
 import streamlit as st
 import sqlite3
 import hashlib
@@ -15,7 +15,7 @@ from src.utils.constants import APP_TITLE, APP_SUBTITLE, PRIMARY_COLOR
 import random
 import time
 st.set_page_config(
-    page_title="Expense Tracker | Smart & Simple",
+    page_title="Expense Tracker",
     page_icon="💰",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -310,12 +310,12 @@ def login_page():
 # --- Main App Logic ---
 from src.utils.navigation import render_sidebar, NAV_CONFIG
 
+# Render centralized responsive sidebar (Always present for consistent toggle)
+render_sidebar()
+
 if not st.session_state.authenticated:
     login_page()
 else:
-    # Render centralized responsive sidebar
-    render_sidebar()
-
     # Route Rendering
     curr_page_label = st.session_state.get('current_page', 'Dashboard')
     if curr_page_label not in NAV_CONFIG:
