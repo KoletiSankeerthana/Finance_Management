@@ -31,102 +31,26 @@ def render_sidebar():
     """
     expanded = st.session_state.get('sidebar_expanded', True)
     
-    # CSS for Sidebar Width control and responsiveness
-    sidebar_width = "280px" if expanded else "0px"
+    # Universal SideBar: Standard width
     st.markdown(f"""
         <style>
-        /* Universal SideBar: 0px or 280px everywhere */
-        [data-testid="stSidebar"] {{
-            min-width: {sidebar_width} !important;
-            max-width: {sidebar_width} !important;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        }}
-        /* Force main content to expand when sidebar is width 0 */
-        {f"[data-testid='stMain'] {{ margin-left: 0 !important; padding-left: 1rem !important; }}" if not expanded else ""}
-        
         [data-testid="stSidebar"] {{
             background-color: #050505 !important;
             border-right: 1px solid rgba(255, 255, 255, 0.05);
-            overflow: visible !important; /* Critical to show the fixed toggle */
         }}
+        [data-testid="stSidebarNav"] {{ display: none; }} /* Hide default nav items only */
         
-        [data-testid="stSidebarNav"] {{ display: none; }} /* Hide default nav */
-        
-        /* Persistent Toggle Button Styling - Always Fixed at top-left */
-        .sidebar-toggle-btn {{
-            position: fixed !important;
-            top: 15px !important;
-            left: 15px !important;
-            z-index: 99999 !important; /* Top of everything */
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-        }}
-        .sidebar-toggle-btn button {{
-            background: rgba(0, 128, 128, 0.2) !important; /* Low-profile teal tint */
-            backdrop-filter: blur(5px);
-            border: 1px solid rgba(0, 128, 128, 0.3) !important;
-            color: var(--primary) !important;
-            font-size: 1.2rem !important;
-            padding: 0 !important;
-            min-height: 0 !important;
-            width: 32px !important;
-            height: 32px !important;
-            border-radius: 8px !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            transition: all 0.2s ease !important;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-        }}
-        .sidebar-toggle-btn button:hover {{
-            background: var(--primary) !important;
-            color: white !important;
-            transform: scale(1.05);
-        }}
-
-        /* Hide content when collapsed */
-        {f" div[data-testid='stSidebar'] .sidebar-text-container, div[data-testid='stSidebar'] .username-text, div[data-testid='stSidebar'] hr, div[data-testid='stSidebar'] .stButton, div[data-testid='stSidebar'] .stCaption, div[data-testid='stSidebar'] p {{ opacity: 0 !important; pointer-events: none !important; }} " if not expanded else ""}
-        
-        /* Special case: hide everything but allow the toggle wrapper back */
-        .sidebar-toggle-btn {{ opacity: 1 !important; pointer-events: auto !important; }}
-
         /* Prevent character stacking */
         [data-testid="stSidebar"] * {{
             word-break: keep-all !important;
             overflow-wrap: normal !important;
             white-space: nowrap !important;
         }}
-        
-        /* Hide native Streamlit header button */
-        button[kind="header"] {{ display: none !important; }}
         </style>
-        <script>
-        function hideNativeElements() {{
-            const doc = window.parent.document;
-            const buttons = doc.querySelectorAll('button');
-            buttons.forEach(btn => {{
-                if (btn.getAttribute("kind") === "header") {{
-                    btn.style.display = 'none';
-                }}
-            }});
-        }}
-        hideNativeElements();
-        setTimeout(hideNativeElements, 100);
-        setInterval(hideNativeElements, 1000); 
-        </script>
 
     """, unsafe_allow_html=True)
 
     with st.sidebar:
-        # 1. Persistent Arrow Toggle (Fix for all devices)
-        st.markdown('<div class="sidebar-toggle-btn">', unsafe_allow_html=True)
-        toggle_icon = "«" if expanded else "»"
-        if st.button(toggle_icon, key="sidebar_toggle_persistent"):
-            st.session_state.sidebar_expanded = not expanded
-            st.rerun()
-        st.markdown('</div>', unsafe_allow_html=True)
-
         st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
 
         if expanded:
