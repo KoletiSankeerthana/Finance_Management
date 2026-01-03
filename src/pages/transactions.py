@@ -101,7 +101,7 @@ def render_transactions():
                     with st.form("edit_txn_form"):
                         u_cat = st.selectbox("New Category", display_cats, index=all_cat_names.index(row['category']))
                         u_mode = st.selectbox("New Mode", PAYMENT_MODES, index=PAYMENT_MODES.index(row['payment_method']))
-                        u_amt = st.number_input("New Amount", value=float(row['amount']), min_value=0.1)
+                        u_amt = st.number_input("New Amount", value=float(row['amount']), min_value=0.1, step=1.0, format="%.2f")
                         u_date = st.date_input("New Date", value=row['date'])
                         u_desc = st.text_input("New Description", value=row['notes'])
                         
