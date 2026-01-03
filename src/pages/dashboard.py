@@ -171,13 +171,17 @@ def render_dashboard():
     # =========================================================
     # 3. DYNAMIC CHARTS - USES FILTER
     # =========================================================
-    st.markdown("### 📊 Spending Trend")
-
     # Create filtered DF for Chart
     chart_df = pd.DataFrame()
     if not df.empty:
         mask = (df['date'] >= start_date_chart) & (df['date'] <= end_date_chart)
         chart_df = df[mask]
+    
+    # Metrics for Filtered Data
+    txn_count = len(chart_df)
+    
+    # Header with Count
+    st.markdown(f"### 📊 Spending Trend <span style='font-size:1rem; font-weight:normal; color:#a4b0be; margin-left:10px;'>({txn_count} Transactions)</span>", unsafe_allow_html=True)
     
     if not chart_df.empty:
         range_days = (end_date_chart - start_date_chart).days
