@@ -65,9 +65,10 @@ def render_transactions():
                     
                     if add_transaction(user_id, amt, selected_cat_name, mode, txn_date, desc):
                         st.success("Saved!")
-                        # No need to manually set session state here if clear_on_submit=True
-                        # but ensure streamlit knows it's 0.
-                        time.sleep(1)
+                        # FORCE clear cache explicitly here as well
+                        st.cache_data.clear()
+                        # Slightly longer delay to ensure cloud FS propagation
+                        time.sleep(1.5)
                         st.rerun()
                     else:
                         st.error("Error saving.")
