@@ -6,9 +6,10 @@ __pycache__/
 env/
 venv/
 .venv/
-finance_pro.db
-expense_tracker.db
-*.db
+# Database files now included for sync
+# finance_pro.db
+# expense_tracker.db
+# *.db
 .streamlit/secrets.toml
 .env
 .ipynb_checkpoints/
