@@ -1,2 +1,2 @@
-Deployment Verification: 2026-01-02 16:05:00
-Purpose: Force Streamlit Cloud to detect a file-level change and rebuild.
+Deployment Verification: 2026-01-03 11:22:00
+Purpose: Force Streamlit Cloud to detect a file-level change and rebuild for the new ☰ toggle.
