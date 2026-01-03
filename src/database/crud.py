@@ -52,9 +52,10 @@ def init_user_defaults(user_id, cursor=None):
     
     # V3: Default categories with Emojis
     default_categories = [
-        ('Food & Dining', '🍔'),
-        ('Transportation', ''),
-        ('Shopping', '🛒'),
+        ('Food & Dining', '🍴'),
+        ('Transportation', '🚗'),
+        ('Online Shopping', '🛒'),
+        ('Shopping', '🛍️'),
         ('Utilities', '💡'),
         ('Entertainment', '🎬'),
         ('Health', '🏥'),

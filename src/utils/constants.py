@@ -12,7 +12,7 @@ ACCENT_WARNING = "#f1c40f"
 # --- Categories & Icons ---
 # Mapping category names to their professional icons
 CATEGORY_ICONS = {
-    "Online Shopping": "",
+    "Online Shopping": "🛒",
     "Grocery": "🥦",
     "Healthcare": "🏥",
     "Entertainment": "🎬",
@@ -20,7 +20,7 @@ CATEGORY_ICONS = {
     "Donation": "🤝",
     "Recharge": "📱",
     "Subscriptions": "🔁",
-    "Transportation": "",
+    "Transportation": "🚗",
     "Food & Dining": "🍽️",
     "Utilities": "🛠️",
     "Shopping": "🛍️",
