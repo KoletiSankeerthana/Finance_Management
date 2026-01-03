@@ -40,7 +40,11 @@ def render_transactions():
     st.markdown("### ⚡ Actions")
     
     # --- ADD EXPENSE ---
-    with st.expander("▶ Add Expense", expanded=True): # Default expanded for better visibility
+    # Manage expander state
+    if "add_exp_expanded" not in st.session_state:
+        st.session_state.add_exp_expanded = True
+
+    with st.expander("▶ Add Expense", expanded=st.session_state.add_exp_expanded): 
         with st.form("add_txn_form", clear_on_submit=True):
             c1, c2 = st.columns(2)
             cat_display = c1.selectbox("Category", ["Select"] + display_cats)
@@ -67,6 +71,8 @@ def render_transactions():
                         st.success("Saved!")
                         # FORCE clear cache explicitly here as well
                         st.cache_data.clear()
+                        # Collapse the form to show history
+                        st.session_state.add_exp_expanded = False 
                         # Slightly longer delay to ensure cloud FS propagation
                         time.sleep(1.5)
                         st.rerun()
@@ -148,7 +154,8 @@ def render_transactions():
     st.markdown("### 🔍 Search & Filter")
     with st.container():
         c1, c2, c3 = st.columns(3)
-        period = c1.selectbox("Period", ["Monthly", "Weekly", "Custom", "All"], index=0)
+        # Default Filter: All
+        period = c1.selectbox("Period", ["All", "Monthly", "Weekly", "Custom"], index=0)
         f_cat_disp = c2.selectbox("Category", ["All"] + display_cats, key="hist_cat")
         f_mode = c3.selectbox("Payment Mode", ["All"] + PAYMENT_MODES, key="hist_mode")
         
