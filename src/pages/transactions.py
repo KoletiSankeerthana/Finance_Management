@@ -105,10 +105,12 @@ def render_transactions():
                                 if u_cat.endswith(n):
                                     up_cat = n
                                     break
-                            if update_transaction(row['id'], user_id, u_amt, up_cat, u_mode, u_date, u_desc):
-                                st.success("Updated!")
+                            if update_transaction(int(row['id']), user_id, u_amt, up_cat, u_mode, u_date, u_desc):
+                                st.success("Updated Successfully!")
                                 time.sleep(1)
                                 st.rerun()
+                            else:
+                                st.error("Failed to update transaction. Please try refreshing.")
                 else:
                     st.info("No matches.")
 
@@ -128,11 +130,12 @@ def render_transactions():
                     matches['label'] = matches.apply(lambda x: f"{x['date']} | ₹{x['amount']} | {x['notes'][:20]}...", axis=1)
                     target = st.selectbox("Select to Delete", matches['label'].tolist())
                     if st.button("Confirm Delete", type="primary", use_container_width=True):
-                        row_id = matches[matches['label'] == target].iloc[0]['id']
-                        if delete_transaction(row_id, user_id):
-                            st.success("Deleted.")
+                        if delete_transaction(int(matches[matches['label'] == target].iloc[0]['id']), user_id):
+                            st.success("Deleted Successfully.")
                             time.sleep(1)
                             st.rerun()
+                        else:
+                            st.error("Failed to delete. Please refresh.")
                 else:
                     st.warning("Empty category.")
             

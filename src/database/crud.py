@@ -240,6 +240,7 @@ def reset_user_data(user_id):
         cursor.execute("DELETE FROM categories WHERE user_id = ?", (user_id,))
         init_user_defaults(user_id, cursor)
         conn.commit()
+        _clear_cache()
         return True
     except: return False
     finally: conn.close()

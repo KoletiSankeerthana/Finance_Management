@@ -6,8 +6,10 @@ DB_PATH = "finance_pro.db"
 def get_connection():
     conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     conn.row_factory = sqlite3.Row
-    # Enable WAL mode for better concurrency and sync on cloud servers
+    # Enable WAL mode and stability pragmas for cloud deployment
     conn.execute("PRAGMA journal_mode=WAL;")
+    conn.execute("PRAGMA synchronous=NORMAL;")
+    conn.execute("PRAGMA temp_store=MEMORY;")
     return conn
 
 def migrate_users_to_nullable_email(cursor):
