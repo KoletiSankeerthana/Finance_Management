@@ -1,2 +1,3 @@
-Deployment Verification: 2026-01-03 11:22:00
-Purpose: Force Streamlit Cloud to detect a file-level change and rebuild for the new ☰ toggle.
+Final Build Sync: 2026-01-03 12:12:00
+Status: Definitive native sidebar restoration complete.
+Target: https://expensetracker-rsmyseokmyq7imqzlitp6f.streamlit.app/
