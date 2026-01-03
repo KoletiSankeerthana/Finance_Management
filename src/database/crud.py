@@ -2,6 +2,11 @@ from .schema import get_connection
 import pandas as pd
 import streamlit as st
 
+# --- Caching (V6: Internal cache clearing) ---
+def _clear_cache():
+    """Invalidates Streamlit's data cache to ensure fresh data load."""
+    st.cache_data.clear()
+
 # --- User Management (V34: Only Username) ---
 def create_user(username, password_hash):
     conn = get_connection()
@@ -157,6 +162,7 @@ def add_transaction(user_id, amount, category, payment, date, notes):
             (user_id, amount, category, payment, date, notes)
         )
         conn.commit()
+        _clear_cache() # Ensure fresh load on next page visit
         return True
     except Exception as e:
         print(f"Error adding transaction: {e}")

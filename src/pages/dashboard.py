@@ -21,6 +21,14 @@ def render_dashboard():
     </div>
     """, unsafe_allow_html=True)
 
+    # --- Manual Refresh ---
+    rx1, rx2, rx3 = st.columns([4, 2, 4])
+    with rx2:
+        if st.button("🔄 Refresh Data", use_container_width=True):
+            from src.database.crud import _clear_cache
+            _clear_cache()
+            st.rerun()
+
     # --- Load Data ---
     df = load_transactions_df(user_id)
     if not df.empty:
