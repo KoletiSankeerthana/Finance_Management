@@ -1,3 +1,4 @@
-Final Build Sync: 2026-01-03 12:12:00
-Status: Definitive native sidebar restoration complete.
+Final Deployment Sync: 2026-01-03 15:30:00
+Status: Definitive native sidebar restored. Branding cleaned.
 Target: https://expensetracker-rsmyseokmyq7imqzlitp6f.streamlit.app/
+Purpose: Force fresh rebuild to resolve deployment lag.
