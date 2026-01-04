@@ -194,7 +194,6 @@ The application will open in your browser at:
 ```
 http://localhost:8501
 ```
-
 ---
 
 ## 🌐 Deployment
@@ -202,6 +201,5 @@ http://localhost:8501
 The application is deployed using **Streamlit Cloud**, connected directly to the GitHub repository for seamless updates and easy access.
 
 * **Live Application:** https://expensetracker-g7zeguupnkodzsm9fhuyge.streamlit.app/
-* 
 
-```
+
